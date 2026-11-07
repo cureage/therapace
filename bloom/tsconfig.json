@@ -2,13 +2,12 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "jsx": "react-jsx",
     "ignoreDeprecations": "6.0",
+    "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./components/*",
-        "./containers/*",
+        "./src/*",
         "./*"
       ]
     }
