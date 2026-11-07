@@ -18,7 +18,7 @@ export const Landing = () => {
         <Button size="lg" onPress={() => navigation.navigate('Login' as never)}>
           <ButtonText>Login</ButtonText>
         </Button>
-        <Button variant="outline" size="lg">
+        <Button variant="outline" size="lg" onPress={() => navigation.navigate('Signup' as never)}>
           <ButtonText className="text-neutral-800">Sign Up</ButtonText>
         </Button>
       </View>
