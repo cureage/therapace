@@ -5,9 +5,15 @@ import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { Landing } from './components/Landing';
 import { Login } from './components/Login';
 import { Signup } from './components/Signup';
+import { Home } from './components/Home';
+import { Profile } from './components/Profile';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
+import { Provider } from 'react-redux';
+import { store } from './store/store';
+import { useAppSelector } from './store/hooks';
 
-const Stack = createNativeStackNavigator();
+const AuthStack = createNativeStackNavigator();
+const AppStack = createNativeStackNavigator();
 
 const navTheme = {
   ...DefaultTheme,
@@ -17,23 +23,43 @@ const navTheme = {
   },
 };
 
-export default function App() {
+function AuthNavigator() {
+  return (
+    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+      <AuthStack.Screen name="Landing" component={Landing} />
+      <AuthStack.Screen name="Login" component={Login} />
+      <AuthStack.Screen name="Signup" component={Signup} />
+    </AuthStack.Navigator>
+  );
+}
+
+function MainNavigator() {
+  return (
+    <AppStack.Navigator screenOptions={{ headerShown: false }}>
+      <AppStack.Screen name="Home" component={Home} />
+      <AppStack.Screen name="Profile" component={Profile} />
+    </AppStack.Navigator>
+  );
+}
+
+function AppContent() {
+  const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
+
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <GluestackUIProvider>
         <NavigationContainer theme={navTheme}>
-          <Stack.Navigator
-            initialRouteName="Landing"
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: 'transparent' },
-            }}>
-            <Stack.Screen name="Landing" component={Landing} />
-            <Stack.Screen name="Login" component={Login} />
-            <Stack.Screen name="Signup" component={Signup} />
-          </Stack.Navigator>
+          {isAuthenticated ? <MainNavigator /> : <AuthNavigator />}
         </NavigationContainer>
       </GluestackUIProvider>
     </SafeAreaProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <Provider store={store}>
+      <AppContent />
+    </Provider>
   );
 }

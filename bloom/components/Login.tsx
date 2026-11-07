@@ -13,18 +13,47 @@ import {
 } from '@/components/ui/form-control';
 import { Input, InputField } from '@/components/ui/input';
 import { BackButton } from '@/components/BackButton';
+import { endpoints } from '@/utils/constants';
+import { useNavigation } from '@react-navigation/native';
+import { setUser } from '@/store/slices/userSlice';
+import { useAppDispatch } from '@/store/hooks';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const Login = () => {
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({ email: '', password: '' });
+  const navigation = useNavigation();
+  const dispatch = useAppDispatch();
 
   const handleSubmit = () => {
+    let hasError = false;
     if (!EMAIL_REGEX.test(loginData.email)) {
       setErrors({ ...errors, email: 'Please enter a valid email address.' });
+      hasError = true;
     } else {
       setErrors({ ...errors, email: '' });
+    }
+
+    if (!hasError) {
+      fetch(endpoints.login, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginData),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          // Handle successful login, e.g., navigate to another screen or store token
+        });
+      const placeholderData = {
+        id: '1',
+        email: 'tammy@test.com',
+        name: 'Tammy Young',
+      };
+      dispatch(setUser(placeholderData));
+      navigation.navigate('Landing' as never);
     }
   };
 
@@ -32,7 +61,7 @@ export const Login = () => {
     <StyledView className="flex h-full flex-col">
       <BackButton />
       <View className="flex-1 items-center justify-center">
-        <Card size="sm" className="w-full items-stretch px-4 py-8 -mt-12">
+        <Card size="sm" className="-mt-12 w-full items-stretch px-4 py-8">
           <Image
             source={require('../assets/bloom-logo.png')}
             className="h-24 w-full"
