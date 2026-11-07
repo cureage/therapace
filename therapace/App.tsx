@@ -1,20 +1,19 @@
-import { ScreenContent } from 'components/ScreenContent';
-import { StatusBar } from 'expo-status-bar';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-// import './global.css';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import './global.css';
+import { Landing } from 'containers/Landing';
+import { Login } from 'containers/Login';
 
-import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
-import '@/global.css';
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <GluestackUIProvider mode="dark">
-      <SafeAreaProvider>
-      <ScreenContent title="Home" path="App.tsx"></ScreenContent>
-      <StatusBar style="auto" />
-    </SafeAreaProvider>
-    </GluestackUIProvider>
-  
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Landing" component={Landing} options={{ headerShown: false }} />
+        <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
