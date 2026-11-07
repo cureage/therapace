@@ -1,0 +1,47 @@
+{
+  "fill" : {
+    "solid" : "srgb:0.93725,0.93725,0.92157,1.00000"
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "image-name" : "Bloom layer 2.svg",
+          "name" : "Bloom layer 2",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              -90.24766631787065,
+              37
+            ]
+          }
+        },
+        {
+          "image-name" : "bloom layer 1.svg",
+          "name" : "bloom layer 1",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              -90.24766631787065,
+              37
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.6
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.2
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}

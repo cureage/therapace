@@ -16,7 +16,7 @@ export const Landing = () => {
       />
       <View className="flex w-full flex-col gap-3">
         <Button size="lg" onPress={() => navigation.navigate('Login' as never)}>
-          <ButtonText>Login</ButtonText>
+          <ButtonText className="text-white">Login</ButtonText>
         </Button>
         <Button variant="outline" size="lg" onPress={() => navigation.navigate('Signup' as never)}>
           <ButtonText className="text-neutral-800">Sign Up</ButtonText>
