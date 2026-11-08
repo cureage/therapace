@@ -5,6 +5,8 @@ type User = {
   email: string;
   name: string;
   isOnboarding: boolean;
+  streak: number;
+  maxStreak: number;
 };
 
 type UserState = {

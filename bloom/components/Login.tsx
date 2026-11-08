@@ -57,6 +57,8 @@ export const Login = () => {
         email: 'tammy@test.com',
         name: 'Tammy Young',
         isOnboarding: false,
+        streak: 0,
+        maxStreak: 10
       };
       dispatch(setUser(placeholderData));
       navigation.navigate('Landing' as never);
