@@ -7,14 +7,10 @@ from rest_framework.views import APIView
 
 from .models import AIVideo, Fear
 from .serializers import (
-    AIVideoSerializer, FearSerializer, GenerateVideoSerializer,
+    AIVideoSerializer, EEGSessionCreateSerializer, FearSerializer, GenerateVideoSerializer,
     LoginSerializer, RegisterSerializer, UserSerializer,
 )
-
-
-
-
-
+from .streaks import complete_eeg_session
 
 
 def build_video_prompt(fear, intensity):
@@ -129,3 +125,23 @@ class MeView(APIView):
 
     def get(self, request):
         return Response(UserSerializer(request.user).data)
+
+
+class EEGSessionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = EEGSessionCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        session, user = complete_eeg_session(
+            user=request.user,
+            session_data=serializer.validated_data["session_data"],
+        )
+        return Response(
+            {
+                "id": session.pk,
+                "created_at": session.created_at,
+                "user": UserSerializer(user).data,
+            },
+            status=status.HTTP_201_CREATED,
+        )

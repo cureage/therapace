@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "Bloom",
+    "slug": "bloom",
+    "version": "1.0.0",
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "experiments": {
+      "tsconfigPaths": true
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#232323",
+          "image": "./assets/images/bloom-logo.png",
+          "dark": {
+            "image": "./assets/images/bloom-logo.png",
+            "backgroundColor": "#000000"
+          },
+          "imageWidth": 200
+        }
+      ],
+      [
+        "react-native-ble-plx",
+        {
+          "bluetoothAlwaysPermission": "Bloom uses Bluetooth to find and connect to your Muse headband."
+        }
+      ]
+    ],
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.bloom",
+      "icon": "./assets/bloom.icon",
+      "infoPlist": {
+        "NSLocalNetworkUsageDescription": "Bloom connects to the development server on your local network while running a debug build."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.anonymous.bloom"
+    }
+  }
+}

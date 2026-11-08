@@ -17,8 +17,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+from users.sensor_views import SensorIngestView
+from users.views import EEGSessionView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/auth/", include("users.urls")),
-    path("api/", include("users.api_urls"))
+    path("api/sessions/", EEGSessionView.as_view(), name="eeg-session"),
+    path("api/sensors/", SensorIngestView.as_view(), name="sensor-ingest"),
+    path("api/", include("users.api_urls")),
 ]
