@@ -45,6 +45,24 @@ The endpoints require the existing DRF token. Full sensor payloads may contain
 sensitive biometric data, so disable or redact this logger and use suitable log
 retention controls before deploying with real users.
 
+## User streaks
+
+An authenticated completed EEG session counts as activity for its UTC calendar
+day. Save a completed session with `POST /api/sessions/`:
+
+```sh
+curl -X POST http://127.0.0.1:8000/api/sessions/ \
+  -H 'Authorization: Token YOUR_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{"session_data": {"duration_seconds": 300}}'
+```
+
+The response includes the session ID and the user's `streak`,
+`max_streak`, and `last_activity_date`. Multiple sessions on one UTC day count
+as one streak day. The current streak is active through the day after the last
+session and is reported as zero once that day has passed. These streak fields
+are also available from `/api/auth/me/`.
+
 ### Bloom app reporting
 
 Set `EXPO_PUBLIC_API_URL` to the backend origin before starting Expo (do not

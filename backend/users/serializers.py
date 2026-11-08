@@ -2,14 +2,71 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
-from .models import User
+from .models import AIVideo, Fear, User
+from .streaks import current_streak
+
+
+class AIVideoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AIVideo
+        fields = (
+            "id", "fear", "intensity", "prompt", "provider", "status",
+            "error_message", "video_url", "thumbnail_url", "duration_seconds", "created_at",
+        )
+        read_only_fields = fields   # the backend manages videos, the client only reads them
+
+
+class FearSerializer(serializers.ModelSerializer):
+    video_count = serializers.IntegerField(source="videos.count", read_only=True)
+
+    class Meta:
+        model = Fear
+        fields = (
+            "id", "category", "name", "description", "initial_severity",
+            "current_level", "is_active", "video_count", "created_at",
+        )
+        read_only_fields = ("id", "current_level", "video_count", "created_at")
+
+    def validate_initial_severity(self, value):
+        if not 0 <= value <= 10:
+            raise serializers.ValidationError("Must be between 0 and 10.")
+        return value
+
+
+class GenerateVideoSerializer(serializers.Serializer):
+    """Input for POST /fears/{id}/generate-video/. Both fields are optional."""
+    intensity = serializers.IntegerField(min_value=1, max_value=10, required=False)
+    prompt = serializers.CharField(required=False, allow_blank=False)
 
 
 class UserSerializer(serializers.ModelSerializer):
+    streak = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ("id", "email", "first_name", "last_name", "is_email_verified")
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "is_email_verified",
+            "streak",
+            "max_streak",
+            "last_activity_date",
+        )
         read_only_fields = fields
+
+    def get_streak(self, user):
+        return current_streak(user)
+
+
+class EEGSessionCreateSerializer(serializers.Serializer):
+    session_data = serializers.JSONField()
+
+    def validate_session_data(self, value):
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("Expected a JSON object.")
+        return value
 
 
 class RegisterSerializer(serializers.ModelSerializer):
