@@ -2,8 +2,6 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 
-from django.conf import settings
-
 # Create your models here.
 
 class UserManager(BaseUserManager):
@@ -91,7 +89,8 @@ class EEGSession(models.Model):
         on_delete=models.CASCADE,
         related_name="eeg_sessions",
     )
-    session_data = models.JSONField()
+    # Session metadata; time-series data belongs in readings, not one growing JSON blob.
+    session_data = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -104,6 +103,28 @@ class EEGSession(models.Model):
 
     def __str__(self):
         return f"EEG Session for {self.user.email} at {self.created_at}"
+
+
+class SessionReading(models.Model):
+    class Type(models.TextChoices):
+        EEG = "eeg", "EEG"
+        HEART_RATE = "heart_rate", "Heart rate"
+
+    session = models.ForeignKey(EEGSession, on_delete=models.CASCADE, related_name="readings")
+    type = models.CharField(max_length=16, choices=Type.choices)
+    device_id = models.CharField(max_length=255)
+    timestamp = models.DateTimeField(help_text="Measurement time, or frontend notification receipt time.")
+    # Heart rate: {"unit": "bpm", "value": 78}; EEG: {"unit": "uV", "channels": {...}}.
+    data = models.JSONField()
+    received_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["timestamp", "id"]
+        indexes = [models.Index(fields=["session", "type", "timestamp"], name="session_type_time_idx")]
+        constraints = [models.UniqueConstraint(
+            fields=["session", "type", "device_id", "timestamp"],
+            name="session_reading_unique",
+        )]
 
 
 class StreakDay(models.Model):
