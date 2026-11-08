@@ -9,11 +9,13 @@ type User = {
 type UserState = {
   currentUser: User | null;
   isAuthenticated: boolean;
+  isOnboarding: boolean;
 };
 
 const initialState: UserState = {
   currentUser: null,
   isAuthenticated: false,
+  isOnboarding: false
 };
 
 const userSlice = createSlice({

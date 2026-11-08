@@ -1,7 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Icon } from '@/components/ui/icon';
-import { Home, Search, User, Trophy } from 'lucide-react-native';
+import { Home, Search, User, Trophy, Settings } from 'lucide-react-native';
 import { BloomIconColor, BloomIconMono } from '@/components/BloomIcon';
 
 const ICONS: Record<string, any> = {
@@ -10,6 +10,7 @@ const ICONS: Record<string, any> = {
   profile: User,
   conquer: BloomIconMono,
   leaderboard: Trophy,
+  settings: Settings,
 };
 
 const FOCUSED_ICONS: Record<string, any> = {
