@@ -75,3 +75,47 @@ posts a sample to `/api/sensors/` every five seconds. At present MuseBluetoothSe
 only exposes Bluetooth RSSI, so the submitted `sensor_values` contain
 `rssi_dbm`; this does not represent EEG data. The current mobile code does not
 subscribe to or decode Muse EEG notifications.
+
+### Fitbit Air live heart rate
+
+Settings now has a Fitbit / Bluetooth heart-rate sensor section below the Muse
+controls. It subscribes directly to the standard Bluetooth Heart Rate Service
+(`180D`), Heart Rate Measurement (`2A37`), and displays BPM as notifications arrive.
+It does not use Fitbit account APIs or require a Django login. Heart-rate readings
+are displayed locally; they are not uploaded to Django. Muse and Fitbit can stay
+connected together, but only one scan or connection operation runs at a time on
+the Settings page. Connections remain active when leaving the page; use Disconnect
+to stop the heart-rate subscription. Streaming is intended for foreground use.
+
+On your phone, open **Google Health → Connections → your Fitbit Air → Share heart
+rate → Get started**, then return to Bloom, open Settings, scan, and select your
+Air. Wear it snugly and approve any system pairing prompts. Other devices that
+advertise the Bluetooth Heart Rate Service may also appear. A successful Bluetooth
+connection alone does not guarantee readings: the device must expose a notifying
+Heart Rate Measurement characteristic and have heart-rate sharing enabled.
+The panel hides readings after ten seconds without updates or while backgrounded.
+
+Google's setup guide:
+https://support.google.com/googlehealth/answer/14236705?hl=en
+
+For your friend's Mac (with Xcode and iOS signing configured):
+
+```sh
+cd bloom
+npm ci
+npx expo run:ios --device
+```
+
+Use a physical iPhone with Bluetooth enabled. This requires a native development
+build, not Expo Go, a web browser, or an iOS simulator. The Expo BLE plugin includes
+the Bluetooth permission message for both Muse and Fitbit; rebuild the native app
+to apply it. If using an already-generated `ios/` project, run
+`npx expo prebuild --platform ios` before compiling so the plugin settings apply.
+Device compatibility and live notification delivery still require hardware testing.
+
+Decoder checks (no Bluetooth hardware required):
+
+```sh
+cd bloom
+node --test services/HeartRateMeasurement.test.cjs
+```

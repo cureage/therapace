@@ -1,5 +1,6 @@
 import { BleManager, type BleError, type Device, type Subscription } from 'react-native-ble-plx';
 import { PermissionsAndroid, Platform } from 'react-native';
+import { getBluetoothManager } from './BluetoothManager';
 
 const MUSE_NAME_PREFIX = 'muse';
 const SCAN_DURATION_MS = 10_000;
@@ -26,7 +27,7 @@ class MuseBluetoothService {
       throw new Error('Muse BLE is available only in a native iOS or Android build.');
     }
 
-    this.manager ??= new BleManager();
+    this.manager ??= getBluetoothManager();
     return this.manager;
   }
 
