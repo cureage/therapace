@@ -28,25 +28,25 @@ export const Login = () => {
 
   const handleSubmit = () => {
     let hasError = false;
-    if (!EMAIL_REGEX.test(loginData.email)) {
-      setErrors({ ...errors, email: 'Please enter a valid email address.' });
-      hasError = true;
-    } else {
-      setErrors({ ...errors, email: '' });
-    }
+    // if (!EMAIL_REGEX.test(loginData.email)) {
+    //   setErrors({ ...errors, email: 'Please enter a valid email address.' });
+    //   hasError = true;
+    // } else {
+    //   setErrors({ ...errors, email: '' });
+    // }
 
     if (!hasError) {
-      fetch(endpoints.login, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(loginData),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          // Handle successful login, e.g., navigate to another screen or store token
-        });
+      // fetch(endpoints.login, {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(loginData),
+      // })
+      //   .then((res) => res.json())
+      //   .then((data) => {
+      //     // Handle successful login, e.g., navigate to another screen or store token
+      //   });
       const placeholderData = {
         id: '1',
         email: 'tammy@test.com',

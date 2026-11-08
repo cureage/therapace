@@ -11,9 +11,14 @@ import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-c
 import { Provider } from 'react-redux';
 import { store } from './store/store';
 import { useAppSelector } from './store/hooks';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { NavBar } from './components/NavBar';
+import { Leaderboard } from './components/Leaderboard';
+import { Conquer } from './components/Conquer';
 
 const AuthStack = createNativeStackNavigator();
 const AppStack = createNativeStackNavigator();
+const MainTabs = createBottomTabNavigator();
 
 const navTheme = {
   ...DefaultTheme,
@@ -35,10 +40,16 @@ function AuthNavigator() {
 
 function MainNavigator() {
   return (
-    <AppStack.Navigator screenOptions={{ headerShown: false }}>
-      <AppStack.Screen name="Home" component={Home} />
-      <AppStack.Screen name="Profile" component={Profile} />
-    </AppStack.Navigator>
+    <MainTabs.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+      tabBar={(props) => <NavBar {...props} />}>
+      <MainTabs.Screen name="Home" component={Home} />
+      <MainTabs.Screen name="Conquer" component={Conquer} />
+      <MainTabs.Screen name="Profile" component={Profile} />
+      <MainTabs.Screen name="Leaderboard" component={Leaderboard} />
+    </MainTabs.Navigator>
   );
 }
 

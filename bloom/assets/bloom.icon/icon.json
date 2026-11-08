@@ -19,6 +19,12 @@
         {
           "image-name" : "bloom layer 1.svg",
           "name" : "bloom layer 1",
+          "opacity-specializations" : [
+            {
+              "appearance" : "tinted",
+              "value" : 0.27
+            }
+          ],
           "position" : {
             "scale" : 1,
             "translation-in-points" : [
