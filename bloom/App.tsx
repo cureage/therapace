@@ -7,6 +7,7 @@ import { store } from './store/store';
 import { useAppSelector } from './store/hooks';
 import { AuthNavigator } from '@/navigators/AuthNavigator';
 import { MainNavigator } from '@/navigators/MainNavigator';
+import { OnboardingNavigator } from '@/navigators/OnboardingNavigator';
 
 const navTheme = {
   ...DefaultTheme,
@@ -18,12 +19,13 @@ const navTheme = {
 
 function AppContent() {
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
+  const isOnboarding = useAppSelector((state) => state.user.isOnboarding);
 
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <GluestackUIProvider>
         <NavigationContainer theme={navTheme}>
-          {isAuthenticated ? <MainNavigator /> : <AuthNavigator />}
+          {isAuthenticated ? <MainNavigator /> : isOnboarding ? <OnboardingNavigator /> : <AuthNavigator />}
         </NavigationContainer>
       </GluestackUIProvider>
     </SafeAreaProvider>

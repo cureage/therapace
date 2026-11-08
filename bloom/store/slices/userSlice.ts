@@ -4,6 +4,7 @@ type User = {
   id: string;
   email: string;
   name: string;
+  isOnboarding: boolean;
 };
 
 type UserState = {
@@ -15,7 +16,7 @@ type UserState = {
 const initialState: UserState = {
   currentUser: null,
   isAuthenticated: false,
-  isOnboarding: false
+  isOnboarding: false,
 };
 
 const userSlice = createSlice({
@@ -24,7 +25,18 @@ const userSlice = createSlice({
   reducers: {
     setUser(state, action: PayloadAction<User>) {
       state.currentUser = action.payload;
+      state.isOnboarding = action.payload.isOnboarding;
+      if (!state.isOnboarding) {
+        state.isAuthenticated = false;
+      }
+    },
+    completeOnboarding(state) {
+      state.isOnboarding = false;
       state.isAuthenticated = true;
+      if (state.currentUser) state.currentUser.isOnboarding = false;
+    },
+    setAuthenticated(state, action: PayloadAction<boolean>) {
+      state.isAuthenticated = action.payload;
     },
     logout(state) {
       state.currentUser = null;
@@ -33,5 +45,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { setUser, logout } = userSlice.actions;
+export const { setUser, completeOnboarding, logout } = userSlice.actions;
 export default userSlice.reducer;
