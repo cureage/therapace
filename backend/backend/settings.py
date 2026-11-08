@@ -49,7 +49,16 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'users',
+    'inference',
 ]
+
+INFERENCE = {
+    "FEAR_EEG_MODEL_PATH": BASE_DIR / "backend" / "ml_artifacts" / "fear_eeg_model.joblib",
+    "FEAR_THRESHOLD": 0.6,
+    "SMOOTHING_SECONDS": 30,
+}
+# A 3-minute calibration at 256 Hz x 4 channels is ~1.5 MB of JSON; Django's default cap is 2.5 MB.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 AUTH_USER_MODEL = 'users.User'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
