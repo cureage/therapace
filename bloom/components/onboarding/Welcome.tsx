@@ -31,12 +31,12 @@ export const Welcome = () => {
           Welcome, {name}.
         </Heading>
         <Text size="lg" className="mt-4 max-w-md text-center leading-7 text-neutral-600">
-          Let’s learn more about you so we can create an experience that feels personal, safe, and
+          Let's learn more about you so we can create an experience that feels personal, safe, and
           at your pace.
         </Text>
       </View>
       <Button size="lg" onPress={() => navigation.navigate('Fears' as never)}>
-        <ButtonText className="text-white">Let’s begin</ButtonText>
+        <ButtonText className="text-white">Let's begin</ButtonText>
       </Button>
     </StyledView>
   );

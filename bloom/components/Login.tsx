@@ -73,7 +73,7 @@ export const Login = () => {
             className="h-24 w-full"
             resizeMode="contain"
           />
-          <Heading className="text-center text-2xl font-bold text-neutral-800">Login</Heading>
+          <Heading className="text-center text-2xl font-bold">Login</Heading>
 
           {/* Email */}
           <FormControl className="w-full" isRequired={true} isInvalid={!!errors.email}>

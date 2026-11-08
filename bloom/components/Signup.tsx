@@ -77,7 +77,7 @@ export const Signup = () => {
             className="h-24 w-full"
             resizeMode="contain"
           />
-          <Heading className="text-center text-2xl font-bold text-neutral-800">Sign Up</Heading>
+          <Heading className="text-center text-2xl font-bold">Sign Up</Heading>
 
           {/* Name */}
           <FormControl className="w-full" isRequired={true} isInvalid={!!errors.name}>

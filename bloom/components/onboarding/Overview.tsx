@@ -40,7 +40,7 @@ export const Overview = () => {
               <View className="bg-primary mr-4 h-10 w-10 items-center justify-center rounded-full">
                 <Text className="font-bold text-white">{index + 1}</Text>
               </View>
-              <Text className="flex-1 text-base font-semibold text-neutral-800">{step}</Text>
+              <Text className="flex-1 text-base font-semibold text-neutral-800 dark:text-neutral-200">{step}</Text>
             </View>
           ))}
         </View>

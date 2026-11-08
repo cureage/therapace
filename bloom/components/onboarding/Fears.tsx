@@ -52,7 +52,7 @@ export const Fears = () => {
                 <View className="bg-primary/10 mr-3 h-7 w-7 items-center justify-center rounded-full">
                   <Text className="text-primary font-bold">{index + 1}</Text>
                 </View>
-                <Text className="flex-1 text-base text-neutral-800">{item}</Text>
+                <Text className="flex-1 text-base text-neutral-800 dark:text-neutral-200">{item}</Text>
                 <Button
                   size="sm"
                   variant="ghost"

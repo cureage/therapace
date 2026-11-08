@@ -19,7 +19,7 @@ const FOCUSED_ICONS: Record<string, any> = {
 
 export function NavBar({ state, descriptors, navigation }: BottomTabBarProps) {
   return (
-    <View className="flex-row border-t border-neutral-200 bg-white pt-3 pb-6">
+    <View className="flex-row border-t border-neutral-200 dark:border-neutral-700 bg-white dark:bg-background pt-3 pb-6">
       {state.routes.map((route, index) => {
         const focused = state.index === index;
         const { options } = descriptors[route.key];
