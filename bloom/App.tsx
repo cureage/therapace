@@ -11,6 +11,8 @@ import { useEffect, useState } from 'react';
 import type { Device } from 'react-native-ble-plx';
 import { museBluetoothService } from '@/services/MuseBluetoothService';
 import { reportSensorPayload } from '@/services/SensorReportingService';
+import { OnboardingNavigator } from '@/navigators/OnboardingNavigator';
+
 
 const navTheme = {
   ...DefaultTheme,
@@ -66,11 +68,14 @@ function AppContent() {
     };
   }, [authToken, connectedDevice]);
 
+  const isOnboarding = useAppSelector((state) => state.user.isOnboarding);
+
+
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <GluestackUIProvider>
         <NavigationContainer theme={navTheme}>
-          {isAuthenticated ? <MainNavigator /> : <AuthNavigator />}
+          {isAuthenticated ? <MainNavigator /> : isOnboarding ? <OnboardingNavigator /> : <AuthNavigator />}
         </NavigationContainer>
       </GluestackUIProvider>
     </SafeAreaProvider>

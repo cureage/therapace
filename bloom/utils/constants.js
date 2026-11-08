@@ -3,6 +3,7 @@ const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL?.replace(/\/+$/, '');
 export const endpoints = {
   login: '/api/auth/login/',
   sensorIngest: '/api/sensors/',
+  signup: '/api/auth/signup',
 };
 
 export function getApiUrl(path) {
@@ -14,3 +15,6 @@ export function getApiUrl(path) {
 
   return `${API_BASE_URL}${path}`;
 }
+
+
+export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

@@ -13,16 +13,14 @@ import {
 } from '@/components/ui/form-control';
 import { Input, InputField } from '@/components/ui/input';
 import { BackButton } from '@/components/BackButton';
-import { endpoints } from '@/utils/constants';
+import { endpoints, EMAIL_REGEX } from '@/utils/constants';
 import { useNavigation } from '@react-navigation/native';
 import { setUser } from '@/store/slices/userSlice';
 import { useAppDispatch } from '@/store/hooks';
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 export const Login = () => {
   const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [errors, setErrors] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
 
@@ -31,11 +29,18 @@ export const Login = () => {
     // if (!EMAIL_REGEX.test(loginData.email)) {
     //   setErrors({ ...errors, email: 'Please enter a valid email address.' });
     //   hasError = true;
-    // } else {
-    //   setErrors({ ...errors, email: '' });
+    // }
+    // if (loginData.password.length == 0) {
+    //   setErrors({ ...errors, password: 'Please enter your password.' });
+    //   hasError = true;
+    // }
+    // if (loginData.email.length == 0) {
+    //   setErrors({ ...errors, email: 'Please enter your email address.' });
+    //   hasError = true;
     // }
 
     if (!hasError) {
+      setErrors({ ...errors, email: '', password: '' });
       // fetch(endpoints.login, {
       //   method: 'POST',
       //   headers: {
@@ -51,6 +56,7 @@ export const Login = () => {
         id: '1',
         email: 'tammy@test.com',
         name: 'Tammy Young',
+        isOnboarding: false,
       };
       dispatch(setUser(placeholderData));
       navigation.navigate('Landing' as never);

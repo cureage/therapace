@@ -13,8 +13,13 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/splash.png",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#232323",
+          "image": "./assets/images/bloom-logo.png",
+          "dark": {
+            "image": "./assets/images/bloom-logo.png",
+            "backgroundColor": "#000000"
+          },
+          "imageWidth": 200
         }
       ],
       [

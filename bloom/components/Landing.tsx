@@ -6,7 +6,6 @@ import { Image } from 'react-native';
 
 export const Landing = () => {
   const navigation = useNavigation();
-
   return (
     <StyledView className="flex h-full flex-col justify-between">
       <Image
@@ -19,7 +18,7 @@ export const Landing = () => {
           <ButtonText className="text-white">Login</ButtonText>
         </Button>
         <Button variant="outline" size="lg" onPress={() => navigation.navigate('Signup' as never)}>
-          <ButtonText className="text-neutral-800">Sign Up</ButtonText>
+          <ButtonText className="">Sign Up</ButtonText>
         </Button>
       </View>
     </StyledView>
