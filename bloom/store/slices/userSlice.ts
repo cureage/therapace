@@ -27,7 +27,7 @@ const userSlice = createSlice({
       state.currentUser = action.payload;
       state.isOnboarding = action.payload.isOnboarding;
       if (!state.isOnboarding) {
-        state.isAuthenticated = false;
+        state.isAuthenticated = true;
       }
     },
     completeOnboarding(state) {

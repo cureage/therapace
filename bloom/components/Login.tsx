@@ -59,7 +59,7 @@ export const Login = () => {
         isOnboarding: false,
       };
       dispatch(setUser(placeholderData));
-      navigation.navigate('Welcome' as never);
+      navigation.navigate('Landing' as never);
     }
   };
 
