@@ -12,15 +12,17 @@
   :root {
     --primary: #e43d7c;
     --card: 255 255 255;
-    --secondary: 245 245 245;
+    --secondary: #efefef;
     --secondary-foreground: 23 23 23;
     --background: #efefeb;
+    --back-btn: white;
     --popover: 255 255 255;
     --popover-foreground: 10 10 10;
     --muted: 245 245 245;
     --muted-foreground: 115 115 115;
     --destructive: 231 0 11;
-    --foreground: 10 10 10;
+    --foreground: white;
+    --area-foreground: white;
     --border: 229 229 229;
     --input: 229 229 229;
     --ring: 212 212 212;
@@ -31,15 +33,17 @@
     :root {
       --primary: #e43d7c;
       --card: 23 23 23;
-      --secondary: 38 38 38;
+      --secondary: ##171717;
       --secondary-foreground: 250 250 250;
-      --background: #efefeb;
+      --background: #121212;
+      --back-btn: ##171717;
       --popover: 23 23 23;
       --popover-foreground: 250 250 250;
       --muted: 38 38 38;
       --muted-foreground: 161 161 161;
       --destructive: 255 100 103;
-      --foreground: 250 250 250;
+      --foreground: white;
+      --area-foreground: #323232;;
       --border: 46 46 46;
       --input: 46 46 46;
       --accent: #ea8230;
@@ -50,15 +54,17 @@
   :root.dark {
     --primary: #e43d7c;
     --card: 23 23 23;
-    --secondary: 38 38 38;
+    --secondary: ##171717;
     --secondary-foreground: 250 250 250;
-    --background: #efefeb;
+    --background: #121212;
+    --back-btn: ##171717;
     --popover: 23 23 23;
     --popover-foreground: 250 250 250;
     --muted: 38 38 38;
     --muted-foreground: 161 161 161;
     --destructive: 255 100 103;
-    --foreground: 250 250 250;
+    --foreground: #454545;
+    --area-foreground: #323232;;
     --border: 46 46 46;
     --input: 46 46 46;
     --accent: #ea8230;
@@ -68,15 +74,17 @@
   :root.light {
     --primary: #e43d7c;
     --card: 255 255 255;
-    --secondary: 245 245 245;
+    --secondary: #efefef;
     --secondary-foreground: 23 23 23;
     --background: #efefeb;
+    --back-btn: white;
     --popover: 255 255 255;
     --popover-foreground: 10 10 10;
     --muted: 245 245 245;
     --muted-foreground: 115 115 115;
     --destructive: 231 0 11;
-    --foreground: 10 10 10;
+    --foreground: white;
+    --area-foreground: white;
     --border: 229 229 229;
     --input: 229 229 229;
     --ring: 212 212 212;
@@ -87,15 +95,17 @@
 @theme inline {
   --color-primary: var(--primary);
   --color-card: rgb(var(--card));
-  --color-secondary: rgb(var(--secondary));
+  --color-secondary: var(--secondary);
   --color-secondary-foreground: rgb(var(--secondary-foreground));
   --color-background: var(--background);
+  --color-back-btn: var(--back-btn);
   --color-popover: rgb(var(--popover));
   --color-popover-foreground: rgb(var(--popover-foreground));
   --color-muted: rgb(var(--muted));
   --color-muted-foreground: rgb(var(--muted-foreground));
   --color-destructive: rgb(var(--destructive));
-  --color-foreground: rgb(var(--foreground));
+  --color-foreground: var(--foreground);
+  --color-area-foreground: var(--area-foreground);
   --color-border: rgb(var(--border));
   --color-input: rgb(var(--input));
   --color-ring: rgb(var(--ring));

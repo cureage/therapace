@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +26,10 @@ SECRET_KEY = 'django-insecure-1#zm*2s)lusvfb_(yk(nq20v^6r5_9o@_b4!5nktf%o0b!!-2m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.0.2.2', '192.168.x.x']  # 10.0.2.2 = Android emulator; add your PC's LAN IP for a real phone
+ALLOWED_HOSTS = os.environ.get(
+    "DJANGO_ALLOWED_HOSTS",
+    "localhost,127.0.0.1,10.0.2.2",
+).split(",")
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:8081',   # Expo web
@@ -40,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
@@ -91,6 +96,30 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+ASGI_APPLICATION = 'backend.asgi.application'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'sensor_console': {
+            'format': '%(asctime)s %(levelname)s %(name)s: %(message)s',
+        },
+    },
+    'handlers': {
+        'sensor_console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'sensor_console',
+        },
+    },
+    'loggers': {
+        'sensor_stream': {
+            'handlers': ['sensor_console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
 
 # Database
