@@ -16,6 +16,12 @@
           "image": "./assets/splash.png",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "react-native-ble-plx",
+        {
+          "bluetoothAlwaysPermission": "Bloom uses Bluetooth to find and connect to your Muse headband."
+        }
       ]
     ],
     "orientation": "portrait",
@@ -26,7 +32,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.bloom",
-      "icon": "./assets/bloom.icon"
+      "icon": "./assets/bloom.icon",
+      "infoPlist": {
+        "NSLocalNetworkUsageDescription": "Bloom connects to the development server on your local network while running a debug build."
+      }
     },
     "android": {
       "adaptiveIcon": {
