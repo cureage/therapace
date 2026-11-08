@@ -3,13 +3,37 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
 from .models import User
+from .streaks import current_streak
 
 
 class UserSerializer(serializers.ModelSerializer):
+    streak = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ("id", "email", "first_name", "last_name", "is_email_verified")
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "is_email_verified",
+            "streak",
+            "max_streak",
+            "last_activity_date",
+        )
         read_only_fields = fields
+
+    def get_streak(self, user):
+        return current_streak(user)
+
+
+class EEGSessionCreateSerializer(serializers.Serializer):
+    session_data = serializers.JSONField()
+
+    def validate_session_data(self, value):
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("Expected a JSON object.")
+        return value
 
 
 class RegisterSerializer(serializers.ModelSerializer):
