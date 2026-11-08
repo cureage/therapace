@@ -16,5 +16,6 @@ export function getApiUrl(path) {
   return `${API_BASE_URL}${path}`;
 }
 
-
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export const MAX_FEARS = 5;

@@ -62,7 +62,8 @@ export const Signup = () => {
         name: 'Tammy Young',
         isOnboarding: true,
         streak: 1,
-        maxStreak: 10
+        maxStreak: 10,
+        fears: []
       };
       dispatch(setUser(placeholderData));
       navigation.navigate('Landing' as never);

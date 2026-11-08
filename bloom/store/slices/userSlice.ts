@@ -7,6 +7,7 @@ type User = {
   isOnboarding: boolean;
   streak: number;
   maxStreak: number;
+  fears: any
 };
 
 type UserState = {
