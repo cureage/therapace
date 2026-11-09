@@ -97,6 +97,22 @@ INFERENCE = {
     "FEAR_THRESHOLD": 0.6,
     "SMOOTHING_SECONDS": 30,
 }
+# Exposure videos for the conquer page (users/video_generation.py). Generation is disabled
+# (POST /api/videos/ returns 503) until GEMINI_API_KEY is set.
+GEMINI_VIDEO = {
+    "API_KEY": os.environ.get("GEMINI_API_KEY", ""),
+    "MODEL": os.environ.get("GEMINI_VIDEO_MODEL", "gemini-omni-1.2-flash"),
+    "RESOLUTION": os.environ.get("GEMINI_VIDEO_RESOLUTION", "720p"),
+    # Portrait fills the phone screen during a session.
+    "ASPECT_RATIO": os.environ.get("GEMINI_VIDEO_ASPECT_RATIO", "9:16"),
+    # Longest clip the model accepts in one request; longer sessions loop the clip.
+    "MAX_CLIP_SECONDS": int(os.environ.get("GEMINI_VIDEO_MAX_CLIP_SECONDS", "15")),
+    "TIMEOUT_SECONDS": int(os.environ.get("GEMINI_VIDEO_TIMEOUT_SECONDS", "600")),
+    # Background generations allowed at once in each server process.
+    "MAX_CONCURRENT": int(os.environ.get("GEMINI_VIDEO_MAX_CONCURRENT", "2")),
+}
+# Generated videos are private: they are served only through the authenticated stream endpoint.
+MEDIA_ROOT = Path(os.environ.get("DJANGO_MEDIA_ROOT", BASE_DIR / "media"))
 # A 3-minute calibration at 256 Hz x 4 channels is ~1.5 MB of JSON; Django's default cap is 2.5 MB.
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 AUTH_USER_MODEL = 'users.User'
@@ -121,6 +137,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    # Only views that opt in are throttled: each POST /api/videos/ pays for a Gemini generation.
+    'DEFAULT_THROTTLE_RATES': {
+        'video_generation': os.environ.get("GEMINI_VIDEO_RATE_LIMIT", "30/hour"),
+    },
 }
 
 
@@ -168,6 +188,11 @@ LOGGING = {
                 "SENSOR_STREAM_LOG_LEVEL",
                 "INFO" if DEBUG else "WARNING",
             ),
+            'propagate': False,
+        },
+        'users.video_generation': {
+            'handlers': ['sensor_console'],
+            'level': 'INFO',
             'propagate': False,
         },
     },
