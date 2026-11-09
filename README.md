@@ -200,7 +200,7 @@ Gemini generates at most 15 seconds per clip, so longer sessions loop the clip
 until the chosen time has played. The session then ends and is saved as usual.
 
 Video output needs a paid Gemini API key; it is billed per second of video
-(about $0.07/s at 720p for `gemini-omni-1.2-flash`). Set the key and apply the
+(about $0.07/s at 720p for `gemini-omni-flash-preview`). Set the key and apply the
 migration:
 
 ```sh
@@ -214,10 +214,10 @@ Without a key, `POST /api/videos/` returns 503. Optional settings:
 
 | Variable | Default | Notes |
 | --- | --- | --- |
-| `GEMINI_VIDEO_MODEL` | `gemini-omni-1.2-flash` | `gemini-omni-flash-preview`, used by `test.py`, has been shut down |
+| `GEMINI_VIDEO_MODEL` | `gemini-omni-flash-preview` | |
 | `GEMINI_VIDEO_RESOLUTION` | `720p` | `360p`, `720p`, `1080p` or `4k` |
 | `GEMINI_VIDEO_ASPECT_RATIO` | `9:16` | Portrait fills the phone screen; `16:9` also works |
-| `GEMINI_VIDEO_MAX_CLIP_SECONDS` | `15` | The model's per-clip limit (10 for `gemini-omni-1.1-flash`) |
+| `GEMINI_VIDEO_MAX_CLIP_SECONDS` | `15` | The model's per-clip limit (10 for `gemini-omni-flash-preview`) |
 | `GEMINI_VIDEO_TIMEOUT_SECONDS` | `600` | Longest wait for one generation |
 | `GEMINI_VIDEO_MAX_CONCURRENT` | `2` | Generations at once in each server process |
 | `GEMINI_VIDEO_RATE_LIMIT` | `30/hour` | Video requests per user |

@@ -55,7 +55,11 @@ def analyze_session(session):
             "session_id": session.pk,
             "baseline_seconds": _seconds_between(session.started_at, exposure_start),
             "exposure_seconds": _seconds_between(exposure_start or session.started_at, session.ended_at),
-            "heart_rate": _heart_rate([b for _, b in baseline_hr], [b for _, b in exposure_hr]),
+            "heart_rate": _heart_rate(
+                [b for _, b in baseline_hr],
+                exposure_hr,
+                exposure_start or (exposure_hr[0][0] if exposure_hr else None),
+            ),
             "fear": fear,
             "notes": notes,
         }
@@ -183,16 +187,28 @@ def _latest_frames(frames, max_rows):
     return kept[::-1]
 
 
-def _heart_rate(baseline, exposure):
+def _heart_rate(baseline, exposure, exposure_start):
     if not exposure:
         return None
     base = float(np.mean(baseline)) if baseline else None
-    mean = float(np.mean(exposure))
+    values = [bpm for _, bpm in exposure]
+    mean = float(np.mean(values))
+    step = max(1, (len(exposure) + 119) // 120)
+    samples = exposure[::step]
+    if samples[-1] != exposure[-1]:
+        samples.append(exposure[-1])
     return {
         "baseline_bpm": None if base is None else round(base, 1),
         "exposure_mean_bpm": round(mean, 1),
-        "exposure_max_bpm": round(float(np.max(exposure)), 1),
+        "exposure_max_bpm": round(float(np.max(values)), 1),
         "change_bpm": None if base is None else round(mean - base, 1),
+        "timeline": [
+            {
+                "seconds": round((timestamp - exposure_start).total_seconds(), 1),
+                "bpm": round(bpm, 1),
+            }
+            for timestamp, bpm in samples
+        ] if exposure_start is not None else [],
     }
 
 

@@ -178,3 +178,20 @@ class EEGSessionStreakTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, 401)
+        self.assertEqual(self.client.get("/api/sessions/").status_code, 401)
+
+    def test_session_history_returns_only_the_authenticated_users_sessions_and_analyses(self):
+        own = self.post_session_at(datetime(2026, 11, 6, 12, 0, tzinfo=datetime_timezone.utc))
+        own_session = self.user.eeg_sessions.get()
+        own_session.analysis = {"heart_rate": {"exposure_mean_bpm": 84.0}}
+        own_session.save(update_fields=["analysis"])
+        other_user = User.objects.create_user(email="other@example.com", password="test-password")
+        other_user.eeg_sessions.create(session_data={"fear": "Other user's session"})
+
+        response = self.client.get("/api/sessions/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["id"], own.data["id"])
+        self.assertEqual(response.data[0]["analysis"], {"heart_rate": {"exposure_mean_bpm": 84.0}})
+        self.assertEqual(response.data[0]["session_data"], {"duration_seconds": 300})

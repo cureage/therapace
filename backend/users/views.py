@@ -9,7 +9,7 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from . import video_generation
-from .models import AIVideo, Fear
+from .models import AIVideo, EEGSession, Fear
 from .serializers import (
     AIVideoSerializer, EEGSessionCreateSerializer, ExposureVideoRequestSerializer, FearSerializer,
     GenerateVideoSerializer, LoginSerializer, RegisterSerializer, UserSerializer,
@@ -185,6 +185,12 @@ class MeView(APIView):
 
 class EEGSessionView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        sessions = EEGSession.objects.filter(user=request.user).order_by("-created_at").values(
+            "id", "created_at", "status", "started_at", "ended_at", "session_data", "analysis",
+        )
+        return Response(list(sessions))
 
     def post(self, request):
         serializer = EEGSessionCreateSerializer(data=request.data)

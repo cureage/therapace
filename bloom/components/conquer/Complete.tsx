@@ -4,6 +4,7 @@ import { StyledView } from '@/components/StyledView';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
+import { HeartRateChart } from '@/components/HeartRateChart';
 import type { SessionAnalysis } from '@/services/SessionAnalysis';
 import { useAppDispatch } from '@/store/hooks';
 import { endConquer } from '@/store/slices/userSlice';
@@ -47,19 +48,15 @@ const SessionResults = ({ analysis }: { analysis: SessionAnalysis }) => {
       {heart || fear ? (
         <View className="flex-row gap-3">
           {heart ? (
-            heart.change_bpm === null || heart.baseline_bpm === null ? (
-              <Stat
-                label="Heart rate"
-                value={`${Math.round(heart.exposure_mean_bpm)}`}
-                detail="bpm average"
-              />
-            ) : (
-              <Stat
-                label="Heart rate"
-                value={`${heart.change_bpm >= 0 ? '+' : ''}${Math.round(heart.change_bpm)}`}
-                detail={`bpm vs. ${Math.round(heart.baseline_bpm)} calm`}
-              />
-            )
+            <Stat
+              label="Exposure heart rate"
+              value={`${Math.round(heart.exposure_mean_bpm)}`}
+              detail={`bpm average${
+                heart.change_bpm === null || heart.baseline_bpm === null
+                  ? ''
+                  : ` · ${heart.change_bpm >= 0 ? '+' : ''}${Math.round(heart.change_bpm)} vs. calm`
+              }`}
+            />
           ) : null}
           {fear ? (
             <>
@@ -77,6 +74,7 @@ const SessionResults = ({ analysis }: { analysis: SessionAnalysis }) => {
           ) : null}
         </View>
       ) : null}
+      {heart ? <HeartRateChart points={heart.timeline} /> : null}
       {fear && timeline.length > 1 ? (
         <View>
           <Text className="mb-2 text-sm text-neutral-600">Estimated fear during the video</Text>
@@ -96,6 +94,12 @@ const SessionResults = ({ analysis }: { analysis: SessionAnalysis }) => {
             <Text className="text-xs text-neutral-500">End</Text>
           </View>
         </View>
+      ) : null}
+      {fear?.affect ? (
+        <Text className="text-sm text-neutral-600">
+          Average estimated mood: valence {fear.affect.mean_valence?.toFixed(2) ?? '—'}, arousal{' '}
+          {fear.affect.mean_arousal?.toFixed(2) ?? '—'}
+        </Text>
       ) : null}
       {notes.map((note) => (
         <Text key={note} className="text-sm text-neutral-600">

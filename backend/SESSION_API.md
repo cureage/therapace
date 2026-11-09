@@ -158,7 +158,10 @@ needed), and the exposure is scored in 8-second chunks:
   "session_id": 42,
   "baseline_seconds": 64.0,
   "exposure_seconds": 30.1,
-  "heart_rate": {"baseline_bpm": 70.3, "exposure_mean_bpm": 84.3, "exposure_max_bpm": 87.0, "change_bpm": 14.0},
+  "heart_rate": {
+    "baseline_bpm": 70.3, "exposure_mean_bpm": 84.3, "exposure_max_bpm": 87.0, "change_bpm": 14.0,
+    "timeline": [{"seconds": 0.0, "bpm": 82.0}, {"seconds": 1.0, "bpm": 84.0}]
+  },
   "fear": {
     "calibration_id": 7, "n_predictions": 4, "threshold": 0.6,
     "mean_p_fear": 0.41, "max_p_fear_smoothed": 0.44, "pct_windows_fear": 0.0,
@@ -173,3 +176,7 @@ needed), and the exposure is scored in 8-second chunks:
 why. Analyzing again replaces the previous result. `GET` on the same URL returns
 the stored result. The calibration and its predictions are also available from
 the inference endpoints, for example `/api/inference/sessions/7/chart.png`.
+
+`GET /api/sessions/` returns all of the authenticated user's saved sessions, including each stored
+analysis (or `null` if it has not been analyzed). Bloom uses this history to show previous session
+inference results on the home page.

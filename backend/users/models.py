@@ -69,7 +69,7 @@ class AIVideo(models.Model):
     # Conquer page: 1 = cartoon-like and far away … 5 = right up close
     intensity = models.PositiveSmallIntegerField()
     prompt = models.TextField()                           # the exact prompt sent to the generator
-    provider = models.CharField(max_length=50, blank=True)  # model that made it, e.g. "gemini-omni-1.2-flash"
+    provider = models.CharField(max_length=50, blank=True)  # model that made it, e.g. "gemini-omni-flash-preview"
     external_job_id = models.CharField(max_length=255, blank=True)
     # Client-generated idempotency key: retrying a request returns the same video instead of paying twice
     request_key = models.CharField(max_length=64, null=True, blank=True)

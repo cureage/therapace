@@ -72,6 +72,7 @@ class SessionAnalysisTests(APITestCase):
         self.assertEqual((response.data["baseline_seconds"], response.data["exposure_seconds"]), (40, 30))
         self.assertEqual(response.data["heart_rate"], {
             "baseline_bpm": 70.0, "exposure_mean_bpm": 85.0, "exposure_max_bpm": 85.0, "change_bpm": 15.0,
+            "timeline": [{"seconds": float(s), "bpm": 85.0} for s in range(30)],
         })
         fear = response.data["fear"]
         calibration = Calibration.objects.get(eeg_session=session)
