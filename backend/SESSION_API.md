@@ -141,3 +141,35 @@ cd backend
 python manage.py migrate
 python manage.py test users
 ```
+
+## Analyze a session
+
+`POST /api/sessions/42/analysis/` (after every readings batch is uploaded)
+
+Bloom starts recording on the Preparation screen, where the user breathes calmly
+while the video is generated (at least 60 seconds when a sensor is connected),
+and sends `session_data.exposure_started_at` with the moment the video began.
+Readings before that are the calm baseline; readings after it are the exposure.
+The baseline calibrates the EEG fear model (at least 30 seconds of Muse data are
+needed), and the exposure is scored in 8-second chunks:
+
+```json
+{
+  "session_id": 42,
+  "baseline_seconds": 64.0,
+  "exposure_seconds": 30.1,
+  "heart_rate": {"baseline_bpm": 70.3, "exposure_mean_bpm": 84.3, "exposure_max_bpm": 87.0, "change_bpm": 14.0},
+  "fear": {
+    "calibration_id": 7, "n_predictions": 4, "threshold": 0.6,
+    "mean_p_fear": 0.41, "max_p_fear_smoothed": 0.44, "pct_windows_fear": 0.0,
+    "affect": {"mean_valence": -0.1, "mean_arousal": 0.2},
+    "timeline": [{"seconds": 0.0, "p_fear": 0.39, "p_fear_smoothed": 0.39, "heart_rate_bpm": 84.8}]
+  },
+  "notes": []
+}
+```
+
+`heart_rate` or `fear` is `null` when that data is missing, and `notes` explains
+why. Analyzing again replaces the previous result. `GET` on the same URL returns
+the stored result. The calibration and its predictions are also available from
+the inference endpoints, for example `/api/inference/sessions/7/chart.png`.

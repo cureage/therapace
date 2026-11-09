@@ -102,6 +102,23 @@ class SessionReadingTests(APITestCase):
             "samples": [12.4, 10.1],
         })
 
+    def test_full_size_eeg_batch_is_accepted_and_larger_ones_are_rejected(self):
+        # Bloom uploads recordings in chunks of 1000 packets, the endpoint's limit.
+        packets = [
+            {"timestamp": "2026-11-08T19:30:01.125Z", "sequence_id": n,
+             "channel": ["TP9", "AF7", "AF8", "TP10"][n % 4], "samples": [1.5] * 12}
+            for n in range(1001)
+        ]
+        payload = {"session_id": self.session.pk, "type": "eeg", "device_id": "muse",
+                   "data": {"unit": "uV", "sampling_rate_hz": 256, "samples": packets[:1000]}}
+        response = self.client.post(self.url, payload, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["accepted_samples"], 1000)
+        self.assertEqual(self.session.readings.count(), 1000)
+
+        payload["data"]["samples"] = packets
+        self.assertEqual(self.client.post(self.url, payload, format="json").status_code, 400)
+
     def test_samples_outside_recording_window_are_rejected(self):
         self.session.started_at = timezone.datetime(2026, 11, 8, 19, 30, 2, tzinfo=timezone.utc)
         self.session.ended_at = timezone.datetime(2026, 11, 8, 19, 30, 5, tzinfo=timezone.utc)

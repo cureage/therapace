@@ -20,6 +20,10 @@ class Calibration(models.Model):
     recorded_at = models.DateTimeField(default=timezone.now)   # when the calm recording started (session t=0)
     baseline_hr_mean = models.FloatField(null=True, blank=True)   # bpm, from heart rate sent during calibration
     baseline_hr_std = models.FloatField(null=True, blank=True)
+    # Set when this calibration came from analyzing an uploaded Bloom session (session_analysis.py)
+    eeg_session = models.ForeignKey(
+        "users.EEGSession", null=True, blank=True, on_delete=models.CASCADE, related_name="calibrations",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

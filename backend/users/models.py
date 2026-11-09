@@ -113,6 +113,8 @@ class EEGSession(models.Model):
     recording_key = models.CharField(max_length=64, null=True, blank=True)
     started_at = models.DateTimeField(null=True, blank=True)
     ended_at = models.DateTimeField(null=True, blank=True)
+    # Heart-rate and fear results from POST /api/sessions/{id}/analysis/ (inference/session_analysis.py)
+    analysis = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -58,9 +58,10 @@ def add_heart_rate(calib, samples, baseline=False):
     return len(samples)
 
 
-def predict(user, eeg, fs, gyro=None, acc=None, started_at=None, hr=None):
+def predict(user, eeg, fs, gyro=None, acc=None, started_at=None, hr=None, calib=None):
+    """Score one EEG chunk against `calib`, or the user's latest calibration when not given."""
     det = registry.get_detector()
-    calib = require_calibration(user)
+    calib = calib or require_calibration(user)
 
     feats = det.window_features(eeg, fs, gyro, acc)
     probs = det.predict_windows(feats, calib.baseline)

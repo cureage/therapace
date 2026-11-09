@@ -10,11 +10,20 @@ import {
   requestExposureVideo,
   type ExposureVideo,
 } from '@/services/ExposureVideoService';
+import { fitbitBluetoothService } from '@/services/FitbitBluetoothService';
+import { museBluetoothService } from '@/services/MuseBluetoothService';
+import {
+  handOffRecording,
+  startSessionRecording,
+  type SessionRecording,
+} from '@/services/SessionRecording';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { endConquer } from '@/store/slices/userSlice';
 
 // Breathing time before every session, even when the video is ready sooner.
 const PREPARATION_DURATION_MS = 5000;
+// With a sensor connected, the breathing is also the calm baseline the session is compared to.
+const BASELINE_DURATION_MS = 60_000;
 const POLL_INTERVAL_MS = 3000;
 const MAX_WAIT_MS = 10 * 60 * 1000;
 const MAX_POLL_FAILURES = 3;
@@ -22,6 +31,9 @@ const BREATH_MS = 4000;
 
 const errorMessage = (error: unknown) =>
   error instanceof Error ? error.message : "We couldn't create your video.";
+
+const formatClock = (seconds: number) =>
+  `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 
 const BreathingCircle = () => {
   const scale = useAnimatedValue(0.8);
@@ -68,19 +80,49 @@ export const Preparation = () => {
   const [attempt, setAttempt] = useState(0);
   const [video, setVideo] = useState<ExposureVideo | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [breathed, setBreathed] = useState(false);
+  const [elapsedMs, setElapsedMs] = useState(0);
+  const [sensorConnected, setSensorConnected] = useState(false);
   // One idempotency key per attempt: re-running the effect never pays for a second video.
   const requestKeys = useRef<Record<number, string>>({});
+  const recording = useRef<SessionRecording | null>(null);
   const setupError = !conquer
     ? 'Choose a fear to conquer first.'
     : !token
       ? 'Sign in to create your exposure video.'
       : null;
   const shownError = setupError ?? error;
+  const preparationMs = sensorConnected ? BASELINE_DURATION_MS : PREPARATION_DURATION_MS;
+  const prepared = elapsedMs >= preparationMs;
+  const baselineSecondsLeft = sensorConnected
+    ? Math.max(0, Math.ceil((BASELINE_DURATION_MS - elapsedMs) / 1000))
+    : 0;
 
+  // Record while the user breathes: this is the session's calm baseline. The video screen takes
+  // the recording over; leaving from here discards it.
   useEffect(() => {
-    const timeout = setTimeout(() => setBreathed(true), PREPARATION_DURATION_MS);
-    return () => clearTimeout(timeout);
+    const current = startSessionRecording();
+    recording.current = current;
+    const startedAt = Date.now();
+    const tick = setInterval(() => setElapsedMs(Date.now() - startedAt), 500);
+    let museConnected = false;
+    let heartConnected = false;
+    const stopMuse = museBluetoothService.subscribeToConnection((device) => {
+      museConnected = !!device;
+      setSensorConnected(museConnected || heartConnected);
+    });
+    const stopHeart = fitbitBluetoothService.subscribe(({ device }) => {
+      heartConnected = !!device;
+      setSensorConnected(museConnected || heartConnected);
+    });
+    return () => {
+      clearInterval(tick);
+      stopMuse();
+      stopHeart();
+      if (recording.current === current) {
+        current.stop();
+        recording.current = null;
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -129,10 +171,13 @@ export const Preparation = () => {
   }, [attempt, conquer, token]);
 
   useEffect(() => {
-    if (video && breathed) {
-      navigation.dispatch(StackActions.replace('ConquerProcess', { video }));
+    if (!video || !prepared) return;
+    if (recording.current) {
+      handOffRecording(recording.current);
+      recording.current = null;
     }
-  }, [breathed, navigation, video]);
+    navigation.dispatch(StackActions.replace('ConquerProcess', { video }));
+  }, [navigation, prepared, video]);
 
   const retry = () => {
     setError(null);
@@ -143,7 +188,9 @@ export const Preparation = () => {
   const status =
     shownError ??
     (video
-      ? 'Your video is ready. One more deep breath…'
+      ? prepared
+        ? 'Your video is ready. One more deep breath…'
+        : 'Your video is ready. Keep breathing while we finish your baseline.'
       : `Creating your ${conquer?.fear.toLowerCase()} video. This can take a minute or two.`);
 
   return (
@@ -159,6 +206,11 @@ export const Preparation = () => {
           className={`mt-6 text-center ${shownError ? 'text-destructive' : 'text-neutral-500'}`}>
           {status}
         </Text>
+        {!shownError && baselineSecondsLeft > 0 ? (
+          <Text className="text-primary mt-2 text-center font-semibold">
+            Measuring your calm baseline · {formatClock(baselineSecondsLeft)}
+          </Text>
+        ) : null}
       </View>
       <View className="gap-3">
         {error && !setupError ? (

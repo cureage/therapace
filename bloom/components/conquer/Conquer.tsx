@@ -7,11 +7,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { exposureVideoSource, type ExposureVideo } from '@/services/ExposureVideoService';
+import { analyzeSession } from '@/services/SessionAnalysis';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { endConquer, updateStreak } from '@/store/slices/userSlice';
 import {
   saveSession,
   startSessionRecording,
+  takeHandedOffRecording,
   type CapturedSession,
 } from '@/services/SessionRecording';
 
@@ -60,9 +62,12 @@ export const Conquer = () => {
       try {
         const result = await saveSession(recording, token);
         dispatch(updateStreak({ streak: result.user.streak, maxStreak: result.user.max_streak }));
+        // The session is saved either way; results are a bonus if the analysis succeeds.
+        const analysis = await analyzeSession(result.id, token).catch(() => null);
         navigation.dispatch(
           StackActions.replace('Complete', {
             cancelled: recording.metadata.status === 'partial',
+            analysis,
           })
         );
       } catch (uploadError) {
@@ -97,11 +102,14 @@ export const Conquer = () => {
 
   useEffect(() => {
     if (!source) return;
+    // Started on the Preparation screen, so it already holds the calm baseline.
+    active.current ??= takeHandedOffRecording();
     const playback = player.addListener('playingChange', ({ isPlaying }) => {
       if (isPlaying) {
         playingSince.current ??= Date.now();
-        if (!finished.current && !active.current) {
-          active.current = startSessionRecording();
+        if (!finished.current) {
+          active.current ??= startSessionRecording();
+          active.current.markExposureStart();
         }
       } else if (playingSince.current !== null) {
         watchedSeconds.current += (Date.now() - playingSince.current) / 1000;

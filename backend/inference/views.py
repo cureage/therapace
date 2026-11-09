@@ -1,9 +1,12 @@
 from django.http import Http404, HttpResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from . import conf, registry, report, services
+from users.models import EEGSession
+
+from . import conf, registry, report, services, session_analysis
 from .fearml.features import CHANNELS
 from .models import Calibration, Prediction
 from .serializers import (
@@ -162,3 +165,23 @@ class PredictionListView(generics.ListAPIView):
         except ValueError:
             limit = 100
         return Prediction.objects.filter(user=self.request.user).order_by("-created_at")[:limit]
+
+
+class SessionAnalysisView(APIView):
+    """Heart rate and estimated fear for an uploaded Bloom session (see session_analysis.py).
+
+    POST /api/sessions/<id>/analysis/: analyze the session after its readings are uploaded.
+        Safe to repeat; the new result replaces the old one.
+    GET  /api/sessions/<id>/analysis/: the stored result.
+    """
+
+    def post(self, request, pk):
+        session = get_object_or_404(EEGSession, pk=pk, user=request.user)
+        return Response(session_analysis.analyze_session(session))
+
+    def get(self, request, pk):
+        session = get_object_or_404(EEGSession, pk=pk, user=request.user)
+        if session.analysis is None:
+            return Response({"detail": "This session has not been analyzed yet."},
+                            status=status.HTTP_404_NOT_FOUND)
+        return Response(session.analysis)
