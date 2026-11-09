@@ -257,3 +257,30 @@ so no extra services are needed. Restarting the backend abandons generations in
 progress; they are marked failed the next time the app polls them. Videos are
 visible only to their owner and are not served by Nginx; back up
 `backend/media` along with the database.
+
+## Datasets
+
+The EEG fear model in `backend/inference` was trained using the EmoKey Moments
+Muse EEG Dataset (EKM-ED). It contains Muse S EEG recordings from 47
+participants watching emotion-eliciting film clips (including fear), with
+key-moment timestamps and self-reported emotion ratings. The dataset is
+licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
+> Garcia-Moreno, F. M., & Badenes-Sastre, M. (2020). *EmoKey Moments Muse EEG
+> Dataset (EKM-ED): A Comprehensive Collection of Muse S EEG Data and Key
+> Emotional Moments* (Version 1.0) [Data set]. Zenodo.
+> https://doi.org/10.5281/zenodo.8431451
+
+```bibtex
+@dataset{francisco_m_garcia_moreno_2020_8431451,
+  author    = {Francisco M. Garcia-Moreno and Marta Badenes-Sastre},
+  title     = {EmoKey Moments Muse EEG Dataset (EKM-ED): A Comprehensive
+               Collection of Muse S EEG Data and Key Emotional Moments},
+  month     = sep,
+  year      = 2020,
+  publisher = {Zenodo},
+  version   = {1.0},
+  doi       = {10.5281/zenodo.8431451},
+  url       = {https://doi.org/10.5281/zenodo.8431451}
+}
+```
