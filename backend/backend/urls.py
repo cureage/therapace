@@ -26,4 +26,5 @@ urlpatterns = [
     path("api/sessions/", EEGSessionView.as_view(), name="eeg-session"),
     path("api/sensors/", SensorIngestView.as_view(), name="sensor-ingest"),
     path("api/inference/", include("inference.urls")),
+    path("api/", include("users.api_urls")),   # keep last: fears/ and videos/ router
 ]
