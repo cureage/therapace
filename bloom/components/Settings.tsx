@@ -1,7 +1,9 @@
 import { Heading } from '@/components/ui/heading';
 import { StyledView } from '@/components/StyledView';
 import { museBluetoothService } from '@/services/MuseBluetoothService';
-import type { Device } from 'react-native-ble-plx';
+import { FitbitConnection } from '@/components/FitbitConnection';
+import { MuseEEGMonitor } from '@/components/MuseEEGMonitor';
+import type { MuseDevice } from '@/services/MuseBluetoothService';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -17,9 +19,10 @@ function getErrorMessage(error: unknown): string {
 }
 
 export const Settings = () => {
-  const [devices, setDevices] = useState<Device[]>([]);
-  const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
+  const [devices, setDevices] = useState<MuseDevice[]>([]);
+  const [connectedDevice, setConnectedDevice] = useState<MuseDevice | null>(null);
   const [scanning, setScanning] = useState(false);
+  const [fitbitBusy, setFitbitBusy] = useState(false);
   const [connectingDeviceId, setConnectingDeviceId] = useState<string | null>(null);
   const [signalStrength, setSignalStrength] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -72,7 +75,7 @@ export const Settings = () => {
   }, []);
 
   const toggleConnection = useCallback(
-    async (device: Device) => {
+    async (device: MuseDevice) => {
       setErrorMessage(null);
       if (connectedDevice?.id === device.id) {
         setConnectingDeviceId(device.id);
@@ -149,11 +152,11 @@ export const Settings = () => {
               <Pressable
                 accessibilityRole="button"
                 onPress={() => void toggleConnection(connectedDevice)}
-                disabled={connectingDeviceId !== null}
+                disabled={connectingDeviceId !== null || fitbitBusy}
                 style={({ pressed }) => [
                   styles.secondaryButton,
                   pressed && styles.pressed,
-                  connectingDeviceId !== null && styles.disabled,
+                  (connectingDeviceId !== null || fitbitBusy) && styles.disabled,
                 ]}>
                 <Text style={styles.secondaryButtonText}>Disconnect</Text>
               </Pressable>
@@ -163,11 +166,11 @@ export const Settings = () => {
           <Pressable
             accessibilityRole="button"
             onPress={() => void scanForDevices()}
-            disabled={scanning || connectingDeviceId !== null}
+            disabled={scanning || connectingDeviceId !== null || fitbitBusy}
             style={({ pressed }) => [
               styles.primaryButton,
               pressed && styles.pressed,
-              (scanning || connectingDeviceId !== null) && styles.disabled,
+              (scanning || connectingDeviceId !== null || fitbitBusy) && styles.disabled,
             ]}>
             {scanning && <ActivityIndicator size="small" color="#ffffff" />}
             <Text style={styles.primaryButtonText}>
@@ -202,11 +205,11 @@ export const Settings = () => {
                     <Pressable
                       accessibilityRole="button"
                       onPress={() => void toggleConnection(device)}
-                      disabled={connectingDeviceId !== null}
+                      disabled={connectingDeviceId !== null || fitbitBusy}
                       style={({ pressed }) => [
                         isConnected ? styles.secondaryButton : styles.connectButton,
                         pressed && styles.pressed,
-                        connectingDeviceId !== null && styles.disabled,
+                        (connectingDeviceId !== null || fitbitBusy) && styles.disabled,
                       ]}>
                       {isConnecting && (
                         <ActivityIndicator
@@ -233,10 +236,14 @@ export const Settings = () => {
             Devices are matched by the advertised “Muse” name, which can include other Muse models.
             BLE connects directly to the headband; it does not create an operating system Bluetooth
             pairing. Signal quality is based on received signal strength (RSSI), which is reported
-            to the backend every five seconds while signed in. EEG data is not available from the
-            current Bluetooth integration.
+            with available EEG packets to the backend every five seconds while signed in.
           </Text>
         </View>
+        <MuseEEGMonitor device={connectedDevice} />
+        <FitbitConnection
+          otherDeviceBusy={scanning || connectingDeviceId !== null}
+          onBusyChange={setFitbitBusy}
+        />
       </ScrollView>
     </StyledView>
   );

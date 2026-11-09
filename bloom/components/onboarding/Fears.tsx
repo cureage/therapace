@@ -6,8 +6,7 @@ import { Button, ButtonText } from '@/components/ui/button';
 import { Heading } from '@/components/ui/heading';
 import { Input, InputField } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
-
-const MAX_FEARS = 5;
+import { MAX_FEARS } from '@/utils/constants';
 
 export const Fears = () => {
   const navigation = useNavigation();
