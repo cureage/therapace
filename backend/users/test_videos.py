@@ -75,7 +75,6 @@ class ExposureVideoRequestTests(IsolatedMediaMixin, APITestCase):
         self.assertEqual(video.status, AIVideo.Status.PENDING)
         self.assertEqual((video.duration_seconds, video.clip_duration_seconds), (40, 15))
         self.assertEqual(video.fear.user, self.user)
-        self.assertEqual(video.fear.category, Fear.Category.SPIDERS)
         self.assertEqual(video.provider, "gemini-omni-flash-preview")
         self.assertIn("fear of Spiders", video.prompt)
         self.assertIn("intensity 2 of 5 (mild)", video.prompt)
@@ -94,7 +93,7 @@ class ExposureVideoRequestTests(IsolatedMediaMixin, APITestCase):
 
     def test_fears_are_matched_by_name_and_free_text_fears_are_created(self):
         clowns = Fear.objects.create(
-            user=self.user, name="Clowns", category=Fear.Category.CLOWNS, initial_severity=6
+            user=self.user, name="Clowns", category="Clowns", initial_severity=6
         )
 
         reused, _ = self.post_video(fear="clowns")
@@ -102,7 +101,6 @@ class ExposureVideoRequestTests(IsolatedMediaMixin, APITestCase):
 
         self.assertEqual(reused.data["fear"], clowns.pk)
         deep_water = Fear.objects.get(pk=created.data["fear"])
-        self.assertEqual((deep_water.name, deep_water.category), ("Deep water", Fear.Category.OTHER))
         self.assertIsNone(deep_water.initial_severity)
 
     def test_out_of_range_requests_are_rejected(self):
@@ -213,7 +211,7 @@ class GenerateVideoTests(IsolatedMediaMixin, TestCase):
     def setUp(self):
         super().setUp()
         user = User.objects.create_user(email="gen@example.com", password="test-pass-123")
-        fear = Fear.objects.create(user=user, name="Spiders", category=Fear.Category.SPIDERS)
+        fear = Fear.objects.create(user=user, name="Spiders", category="Spiders")
         self.video = AIVideo.objects.create(
             fear=fear, intensity=3, prompt="exposure prompt",
             duration_seconds=10, clip_duration_seconds=10,
@@ -303,7 +301,7 @@ class VideoStreamTests(IsolatedMediaMixin, APITestCase):
         super().setUp()
         self.user = User.objects.create_user(email="viewer@example.com", password="test-pass-123")
         self.client.force_authenticate(self.user)
-        fear = Fear.objects.create(user=self.user, name="Dogs", category=Fear.Category.DOGS)
+        fear = Fear.objects.create(user=self.user, name="Dogs", category="Dogs")
         self.video = AIVideo.objects.create(
             fear=fear, intensity=1, prompt="p", status=AIVideo.Status.READY,
             duration_seconds=5, clip_duration_seconds=5,
