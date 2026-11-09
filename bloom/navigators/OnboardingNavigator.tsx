@@ -9,7 +9,7 @@ const AuthStack = createNativeStackNavigator();
 
 export function OnboardingNavigator() {
   return (
-    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+    <AuthStack.Navigator screenOptions={{ headerShown: false, gestureEnabled: false, animation: 'fade' }}>
       <AuthStack.Screen name="Welcome" component={Welcome} />
       <AuthStack.Screen name="Fears" component={Fears} />
       <AuthStack.Screen name="Thanks" component={Thanks} />

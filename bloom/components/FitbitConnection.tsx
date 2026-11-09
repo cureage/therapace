@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, AppState, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, AppState, Pressable, Text, View } from 'react-native';
 import type { Device } from 'react-native-ble-plx';
 import { fitbitBluetoothService, type HeartRateState } from '@/services/FitbitBluetoothService';
 
@@ -92,28 +92,28 @@ export function FitbitConnection({ otherDeviceBusy, onBusyChange }: Props) {
   const fresh = foreground && state.receivedAt !== null && now - state.receivedAt < 10_000;
   const live = fresh && state.bpm !== null;
   return (
-    <View style={styles.section}>
-      <View style={styles.row}>
-        <Text style={styles.title}>Fitbit Air · Heart rate</Text>
+    <View className="bg-area-foreground mt-6 gap-4 rounded-[20px] p-[18px]">
+      <View className="flex-row items-center justify-between gap-3">
+        <Text className="text-foreground flex-1 text-lg font-bold">Fitbit Air · Heart rate</Text>
         {(scanning || connecting) && <ActivityIndicator color="#426b54" />}
       </View>
-      <Text style={styles.detail}>
+      <Text className="text-[13px] leading-5 text-neutral-500 dark:text-neutral-400">
         In Google Health, open Connections → your Fitbit Air → Share heart rate → Get started. Keep
         the Air nearby and wear it snugly, then scan below.
       </Text>
       {state.device && (
-        <View style={styles.reading}>
-          <Text style={styles.name}>
+        <View className="bg-primary/10 gap-2 rounded-[14px] p-4">
+          <Text className="text-foreground text-sm font-semibold">
             {state.device.name ?? state.device.localName ?? 'Heart-rate sensor'}
           </Text>
           <Text
             accessibilityLabel={
               live ? `${state.bpm} beats per minute` : 'No live heart-rate reading'
             }
-            style={styles.bpm}>
-            {live ? state.bpm : '—'} <Text style={styles.unit}>BPM</Text>
+            className="text-primary text-5xl font-bold">
+            {live ? state.bpm : '—'} <Text className="text-base">BPM</Text>
           </Text>
-          <Text style={styles.detail}>
+          <Text className="text-[13px] leading-5 text-neutral-500 dark:text-neutral-400">
             {live
               ? 'Live heart rate'
               : fresh
@@ -126,8 +126,8 @@ export function FitbitConnection({ otherDeviceBusy, onBusyChange }: Props) {
             accessibilityRole="button"
             disabled={busy}
             onPress={() => void disconnect()}
-            style={[styles.button, busy && styles.disabled]}>
-            <Text style={styles.buttonText}>Disconnect Fitbit</Text>
+            className="bg-primary min-h-11 items-center justify-center rounded-xl px-[14px] py-3 active:opacity-80 disabled:opacity-50">
+            <Text className="text-sm font-semibold text-white">Disconnect Fitbit</Text>
           </Pressable>
         </View>
       )}
@@ -135,8 +135,8 @@ export function FitbitConnection({ otherDeviceBusy, onBusyChange }: Props) {
         accessibilityRole="button"
         disabled={busy}
         onPress={() => void scan()}
-        style={[styles.button, busy && styles.disabled]}>
-        <Text style={styles.buttonText}>
+        className="bg-primary min-h-11 items-center justify-center rounded-xl px-[14px] py-3 active:opacity-80 disabled:opacity-50">
+        <Text className="text-sm font-semibold text-white">
           {scanning
             ? 'Scanning…'
             : connecting
@@ -145,35 +145,41 @@ export function FitbitConnection({ otherDeviceBusy, onBusyChange }: Props) {
         </Text>
       </Pressable>
       {otherDeviceBusy && (
-        <Text style={styles.detail}>Wait for the Muse scan or connection to finish.</Text>
+        <Text className="text-[13px] leading-5 text-neutral-500 dark:text-neutral-400">
+          Wait for the Muse scan or connection to finish.
+        </Text>
       )}
       {(error || state.error) && (
-        <Text accessibilityRole="alert" style={styles.error}>
+        <Text accessibilityRole="alert" className="text-[13px] leading-5 text-red-700">
           {error ?? state.error}
         </Text>
       )}
       {devices
         .filter((device) => device.id !== state.device?.id)
         .map((device) => (
-          <View key={device.id} style={styles.row}>
-            <View style={styles.device}>
-              <Text style={styles.name}>
+          <View
+            key={device.id}
+            className="border-primary-10 flex-row items-center justify-between gap-3 border-t-[0.5px] py-2">
+            <View className="flex-1">
+              <Text className="text-foreground text-sm font-semibold">
                 {device.name ?? device.localName ?? 'Bluetooth heart-rate sensor'}
               </Text>
-              <Text style={styles.detail}>{device.id}</Text>
+              <Text className="text-[13px] leading-5 text-neutral-500 dark:text-neutral-400">
+                {device.id}
+              </Text>
             </View>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`Connect ${device.name ?? 'heart-rate sensor'}`}
               disabled={busy}
               onPress={() => void connect(device)}
-              style={[styles.button, busy && styles.disabled]}>
-              <Text style={styles.buttonText}>Connect</Text>
+              className="bg-primary min-h-11 items-center justify-center rounded-xl px-[14px] py-3 active:opacity-80 disabled:opacity-50">
+              <Text className="text-sm font-semibold text-white">Connect</Text>
             </Pressable>
           </View>
         ))}
       {!scanning && devices.length === 0 && !state.device && (
-        <Text style={styles.detail}>
+        <Text className="text-[13px] leading-5 text-neutral-500 dark:text-neutral-400">
           No sensors listed yet. Enable heart-rate sharing and scan. Other Bluetooth Heart Rate
           Profile sensors may also appear.
         </Text>
@@ -181,27 +187,3 @@ export function FitbitConnection({ otherDeviceBusy, onBusyChange }: Props) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  section: { marginTop: 24, padding: 18, borderRadius: 20, backgroundColor: '#fff', gap: 16 },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  title: { color: '#24352a', fontSize: 18, fontWeight: '700', flex: 1 },
-  detail: { color: '#657168', fontSize: 13, lineHeight: 20 },
-  name: { color: '#26372b', fontSize: 14, fontWeight: '600' },
-  device: { flex: 1 },
-  reading: { backgroundColor: '#f5f9f5', padding: 16, borderRadius: 14, gap: 8 },
-  bpm: { color: '#426b54', fontSize: 48, fontWeight: '700' },
-  unit: { fontSize: 16 },
-  button: {
-    minHeight: 44,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    backgroundColor: '#426b54',
-  },
-  buttonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-  disabled: { opacity: 0.5 },
-  error: { color: '#a43d35', fontSize: 13, lineHeight: 20 },
-});

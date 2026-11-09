@@ -68,7 +68,7 @@ export const Profile = () => {
         <ProfilePicture />
       </View>
       <Card>
-        <ScrollView contentContainerClassName="flex flex-col gap-4">
+        <ScrollView contentContainerClassName="flex flex-col gap-4 pb-64">
           {/* Name */}
           <FormControl className="w-full" isRequired={true && isEdit} isInvalid={!!errors.name}>
             <FormControlLabel>
@@ -134,7 +134,7 @@ export const Profile = () => {
               {updateProfileData.fears.map((item: any, index: any) => (
                 <View
                   key={item}
-                  className="flex-row items-center rounded-2xl border border-neutral-200 dark:border-neutral-500 bg-area-foreground px-4 py-3">
+                  className="bg-area-foreground flex-row items-center rounded-2xl border border-neutral-200 dark:border-neutral-600 px-4 py-3">
                   <View className="bg-primary/10 mr-3 h-7 w-7 items-center justify-center rounded-full">
                     <Text className="text-primary font-bold">{index + 1}</Text>
                   </View>
@@ -157,7 +157,7 @@ export const Profile = () => {
               ))}
               {updateProfileData.fears.length < MAX_FEARS && isEdit && (
                 <View>
-                  <Input className="min-h-14 rounded-2xl border-neutral-200 bg-white px-4">
+                  <Input className="min-h-14 rounded-2xl border-neutral-200 bg-white px-4 dark:border-neutral-600">
                     <InputField
                       placeholder={
                         updateProfileData.fears.length
@@ -241,7 +241,7 @@ export const Profile = () => {
 
           {isEdit ? (
             <Button size="lg" onPress={() => saveProfile()}>
-              <ButtonText className="text-foreground">Save</ButtonText>
+              <ButtonText className="text-white">Save</ButtonText>
             </Button>
           ) : null}
 
@@ -250,8 +250,6 @@ export const Profile = () => {
               <ButtonText className="text-foreground">Cancel</ButtonText>
             </Button>
           ) : null}
-
-          {isEdit ? <View className="h-48" /> : null}
         </ScrollView>
       </Card>
     </StyledView>

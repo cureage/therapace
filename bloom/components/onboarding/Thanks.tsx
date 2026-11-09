@@ -24,10 +24,10 @@ export const Thanks = () => {
             <Text className="text-3xl text-white">♥</Text>
           </View>
         </View>
-        <Heading size="3xl" className="text-center text-neutral-900">
+        <Heading size="3xl" className="text-center text-foreground">
           Thank you for trusting us.
         </Heading>
-        <Text size="lg" className="mt-4 text-center leading-7 text-neutral-600">
+        <Text size="lg" className="mt-4 text-center leading-7 text-muted-foreground">
           Sharing what scares you takes courage. We promise to keep what you share private and use
           it only to shape your care.
         </Text>

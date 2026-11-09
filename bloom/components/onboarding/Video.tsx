@@ -21,10 +21,10 @@ export const Video = () => {
         <Text className="text-primary mb-3 font-semibold tracking-widest uppercase">
           Optional guide
         </Text>
-        <Heading size="3xl" className="text-neutral-900">
+        <Heading size="3xl" className="text-foreground">
           See Bloom in action
         </Heading>
-        <Text size="lg" className="mt-3 leading-7 text-neutral-600">
+        <Text size="lg" className="mt-3 leading-7 text-muted-foreground">
           A quick walkthrough of your first session and headset setup.
         </Text>
         <Button
@@ -36,7 +36,7 @@ export const Video = () => {
             <Text className="text-primary ml-1 text-2xl">{playing ? 'Ⅱ' : '▶'}</Text>
           </View>
         </Button>
-        <Text className="mt-4 text-center text-neutral-500">
+        <Text className="mt-4 text-center text-muted-foreground">
           {playing ? 'Demo playing · 2 min' : 'Watch the 2-minute setup tutorial'}
         </Text>
       </View>

@@ -50,17 +50,17 @@ const TopLeader = ({
   );
 };
 
-const LeaderRow = ({ user, index }: { user: LeaderboardEntry; index: number; myUserId: any }) => {
+const LeaderRow = ({ user, index }: { user: LeaderboardEntry; index: number; }) => {
   return (
     <TableRow className={`flex flex-row gap-4`}>
-      <TableData className="flex-[1] text-sm">#{index + 1}</TableData>
+      <TableData className="flex-[2] text-sm">#{index + 1}</TableData>
       <TableData className="flex-[4] text-sm">{user.name}</TableData>
       <TableData className="flex-[2] flex-row items-center">
-        <Icon as={Shield} size="xs" />
+        <Icon as={Shield} size="xs" className='translate-y-[1px]' />
         <Text className="text-sm">{user?.conquered}</Text>
       </TableData>
       <TableData className="flex-[2] flex-row items-center">
-        <Icon as={Flame} size="xs" />
+        <Icon as={Flame} size="xs" className='translate-y-[1px]' />
         <Text className="text-sm">{user?.streak}</Text>
       </TableData>
     </TableRow>

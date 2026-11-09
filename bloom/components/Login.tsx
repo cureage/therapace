@@ -71,7 +71,7 @@ export const Login = () => {
               />
             </Input>
             <FormControlError className="w-full items-start">
-              <FormControlErrorText className="text-left">{errors.email}</FormControlErrorText>
+              <FormControlErrorText className="text-left text-red-700">{errors.email}</FormControlErrorText>
             </FormControlError>
           </FormControl>
 
@@ -88,7 +88,7 @@ export const Login = () => {
               />
             </Input>
             <FormControlError className="w-full items-start">
-              <FormControlErrorText className="text-left">{errors.password}</FormControlErrorText>
+              <FormControlErrorText className="text-left text-red-700">{errors.password}</FormControlErrorText>
             </FormControlError>
           </FormControl>
           {submitError && <Text accessibilityRole="alert">{submitError}</Text>}

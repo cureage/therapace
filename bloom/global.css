@@ -19,7 +19,7 @@
     --popover: 255 255 255;
     --popover-foreground: 10 10 10;
     --muted: 245 245 245;
-    --muted-foreground: #ababab;
+    --muted-foreground: #707070;
     --destructive: 231 0 11;
     --foreground: #303030;
     --area-foreground: white;
@@ -81,7 +81,7 @@
     --popover: 255 255 255;
     --popover-foreground: 10 10 10;
     --muted: 245 245 245;
-    --muted-foreground: #ababab;
+    --muted-foreground: #707070;
     --destructive: 231 0 11;
     --foreground: #303030;
     --area-foreground: white;

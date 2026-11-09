@@ -72,7 +72,7 @@ export const Home = () => {
       <Heading className="text-4xl font-bold">
         {user?.name ? `Hi, ${user.name} 👋` : `Welcome back 👋`}
       </Heading>
-      <View className="flex items-center justify-center gap-2">
+      <View className="flex items-center justify-center gap-4 pb-4">
         <ProfilePicture name={user?.name} className="!h-36 !w-36" />
         <Text className="text-sm font-medium text-neutral-500 uppercase">Your Current Journey</Text>
       </View>
@@ -82,7 +82,7 @@ export const Home = () => {
             <Icon as={Flame} className="text-accent" />
           </View>
           <View>
-            <Heading>{user?.streak} days</Heading>
+            <Heading>{user?.streak} {user?.streak === 1 ? 'day' : 'days'}</Heading>
             <Text className="text-sm text-neutral-500">Current Streak</Text>
           </View>
         </Card>
@@ -91,7 +91,7 @@ export const Home = () => {
             <Icon as={ShieldCheck} className="text-primary" />
           </View>
           <View>
-            <Heading>{user?.numConquered} fears</Heading>
+            <Heading>{user?.numConquered} {user?.numConquered === 1 ? 'fear' : 'fears'}</Heading>
             <Text className="text-sm text-neutral-500">Conquered</Text>
           </View>
         </Card>
