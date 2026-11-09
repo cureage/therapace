@@ -36,12 +36,24 @@ class SampleArrayField(serializers.Field):
         return np.asarray(value).tolist()
 
 
+MAX_HR_SAMPLES = 20000
+
+
+class HRSampleSerializer(serializers.Serializer):
+    timestamp = serializers.DateTimeField()
+    bpm = serializers.FloatField(min_value=25, max_value=250)
+
+
 class EEGInputSerializer(serializers.Serializer):
     eeg = SampleArrayField(n_cols=4, help_text="(samples, 4) µV in Muse order TP9, AF7, AF8, TP10")
     fs = serializers.IntegerField(min_value=64, max_value=1024, required=False,
                                   help_text="EEG sample rate in Hz (Muse 2: 256)")
     gyro = SampleArrayField(n_cols=3, required=False, help_text="(samples, 3), same time span as eeg")
     acc = SampleArrayField(n_cols=3, required=False, help_text="(samples, 3), same time span as eeg")
+    started_at = serializers.DateTimeField(required=False,
+                                           help_text="when the first EEG sample was recorded (default: now - duration)")
+    hr = HRSampleSerializer(many=True, required=False, max_length=MAX_HR_SAMPLES,
+                            help_text="heart-rate readings from the same time span: [{timestamp, bpm}, ...]")
 
     max_seconds_key = None   # set by subclasses
 
@@ -75,10 +87,17 @@ class PredictInputSerializer(EEGInputSerializer):
     max_seconds_key = "MAX_PREDICT_SECONDS"
 
 
+class HeartRateInputSerializer(serializers.Serializer):
+    """POST /api/inference/heart-rate/: heart rate on its own (e.g. from a watch at its own pace)."""
+    samples = HRSampleSerializer(many=True, allow_empty=False, max_length=MAX_HR_SAMPLES)
+    baseline = serializers.BooleanField(default=False, help_text="true = recorded during the calm calibration")
+
+
 class CalibrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Calibration
-        fields = ("id", "n_windows", "duration_seconds", "has_motion", "model_name", "created_at")
+        fields = ("id", "n_windows", "duration_seconds", "has_motion", "model_name", "recorded_at",
+                  "baseline_hr_mean", "baseline_hr_std", "created_at")
         read_only_fields = fields
 
 
@@ -86,5 +105,6 @@ class PredictionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Prediction
         fields = ("id", "calibration", "p_fear", "p_fear_smoothed", "fear_state", "valence", "arousal",
-                  "quadrant", "window_probs", "n_windows", "duration_seconds", "motion_used", "created_at")
+                  "quadrant", "window_probs", "n_windows", "duration_seconds", "motion_used",
+                  "recorded_at", "hr_mean", "hr_delta", "created_at")
         read_only_fields = fields

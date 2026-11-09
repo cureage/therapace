@@ -1,12 +1,14 @@
+from django.http import Http404, HttpResponse
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from . import conf, registry, services
+from . import conf, registry, report, services
 from .fearml.features import CHANNELS
-from .models import Prediction
+from .models import Calibration, Prediction
 from .serializers import (
-    CalibrateInputSerializer, CalibrationSerializer, PredictInputSerializer, PredictionSerializer,
+    CalibrateInputSerializer, CalibrationSerializer, HeartRateInputSerializer, PredictInputSerializer,
+    PredictionSerializer,
 )
 
 
@@ -32,7 +34,8 @@ class CalibrateView(_EEGView):
     def post(self, request):
         try:
             d = self.parse(request)
-            calib = services.calibrate(request.user, d["eeg"], d["fs"], d.get("gyro"), d.get("acc"))
+            calib = services.calibrate(request.user, d["eeg"], d["fs"], d.get("gyro"), d.get("acc"),
+                                       started_at=d.get("started_at"), hr=d.get("hr"))
         except registry.ModelUnavailable as exc:
             return _unavailable(exc)
         except ValueError as exc:
@@ -47,7 +50,8 @@ class PredictView(_EEGView):
     def post(self, request):
         try:
             d = self.parse(request)
-            pred = services.predict(request.user, d["eeg"], d["fs"], d.get("gyro"), d.get("acc"))
+            pred = services.predict(request.user, d["eeg"], d["fs"], d.get("gyro"), d.get("acc"),
+                                    started_at=d.get("started_at"), hr=d.get("hr"))
         except registry.ModelUnavailable as exc:
             return _unavailable(exc)
         except services.NoCalibration as exc:
@@ -78,6 +82,74 @@ class StatusView(APIView):
             "calibration": CalibrationSerializer(calib).data if calib else None,
         })
         return Response(body)
+
+
+class HeartRateView(APIView):
+    """POST /api/inference/heart-rate/: heart-rate readings on their own, added to the current session.
+
+    {"samples": [{"timestamp": "...", "bpm": 72}, ...], "baseline": false}
+    Use "baseline": true for readings taken during the calm calibration (if they weren't sent with /calibrate/).
+    """
+
+    def post(self, request):
+        s = HeartRateInputSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        try:
+            calib = services.require_calibration(request.user)
+        except services.NoCalibration as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_409_CONFLICT)
+        n = services.add_heart_rate(calib, s.validated_data["samples"], baseline=s.validated_data["baseline"])
+        calib.refresh_from_db()
+        return Response({"session_id": calib.pk, "received": n, "baseline_hr_mean": calib.baseline_hr_mean},
+                        status=status.HTTP_201_CREATED)
+
+
+def _session(request, ref):
+    """ref is a calibration id or 'latest'."""
+    qs = Calibration.objects.filter(user=request.user)
+    calib = qs.order_by("-created_at").first() if ref == "latest" else qs.filter(pk=ref).first() if ref.isdigit() else None
+    if calib is None:
+        raise Http404("No such session.")
+    return calib
+
+
+class SessionListView(generics.ListAPIView):
+    """GET /api/inference/sessions/: this user's sessions (one per calibration), newest first."""
+    serializer_class = CalibrationSerializer
+
+    def get_queryset(self):
+        return Calibration.objects.filter(user=self.request.user).order_by("-created_at")
+
+
+class SessionReportView(APIView):
+    """GET /api/inference/sessions/<id|latest>/: heart rate vs baseline, fear and affect summary."""
+
+    def get(self, request, ref):
+        return Response(report.summary(_session(request, ref)))
+
+
+class SessionCSVView(APIView):
+    """GET /api/inference/sessions/<id|latest>/export.csv: every HR sample and prediction on one timeline."""
+
+    def get(self, request, ref):
+        calib = _session(request, ref)
+        resp = HttpResponse(report.csv_text(calib), content_type="text/csv; charset=utf-8")
+        resp["Content-Disposition"] = f'attachment; filename="session_{calib.pk}.csv"'
+        return resp
+
+
+class SessionChartView(APIView):
+    """GET /api/inference/sessions/<id|latest>/chart.png: heart rate, P(fear) and valence/arousal over time."""
+
+    def get(self, request, ref):
+        calib = _session(request, ref)
+        png = report.chart_png(calib)
+        if png is None:
+            return Response({"detail": "Nothing to chart yet: no heart rate or predictions in this session."},
+                            status=status.HTTP_404_NOT_FOUND)
+        resp = HttpResponse(png, content_type="image/png")
+        resp["Content-Disposition"] = f'inline; filename="session_{calib.pk}.png"'
+        return resp
 
 
 class PredictionListView(generics.ListAPIView):

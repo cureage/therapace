@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from .models import Calibration, Prediction
+from .models import Calibration, HeartRateSample, Prediction
+
+
+@admin.register(HeartRateSample)
+class HeartRateSampleAdmin(admin.ModelAdmin):
+    list_display = ("id", "calibration", "timestamp", "bpm", "is_baseline")
+    list_filter = ("is_baseline",)
+    search_fields = ("calibration__user__email",)
 
 
 @admin.register(Calibration)

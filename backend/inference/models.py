@@ -1,9 +1,14 @@
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 class Calibration(models.Model):
-    """A user's ~60 s calm baseline. Every prediction is relative to one of these."""
+    """A user's ~60 s calm baseline. Every prediction is relative to one of these.
+
+    It also marks the start of a recording session: the session is this calibration
+    plus every prediction and heart-rate sample recorded against it.
+    """
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="calibrations")
     baseline = models.JSONField()        # mean of each feature over the calm windows (fed to the model)
@@ -12,6 +17,9 @@ class Calibration(models.Model):
     duration_seconds = models.FloatField()
     has_motion = models.BooleanField(default=False)
     model_name = models.CharField(max_length=100)   # which .joblib it was made for
+    recorded_at = models.DateTimeField(default=timezone.now)   # when the calm recording started (session t=0)
+    baseline_hr_mean = models.FloatField(null=True, blank=True)   # bpm, from heart rate sent during calibration
+    baseline_hr_std = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -45,6 +53,9 @@ class Prediction(models.Model):
     n_windows = models.PositiveSmallIntegerField()
     duration_seconds = models.FloatField()
     motion_used = models.BooleanField(default=False)
+    recorded_at = models.DateTimeField(default=timezone.now)   # start of this EEG chunk (client clock if sent)
+    hr_mean = models.FloatField(null=True, blank=True)    # mean bpm of heart-rate samples inside this chunk
+    hr_delta = models.FloatField(null=True, blank=True)   # hr_mean - calibration baseline, bpm
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -53,3 +64,22 @@ class Prediction(models.Model):
 
     def __str__(self):
         return f"{self.user} {self.fear_state} p={self.p_fear_smoothed:.2f} @ {self.created_at:%H:%M:%S}"
+
+
+class HeartRateSample(models.Model):
+    """One heart-rate reading (from the Muse PPG, a watch, a chest strap...) in a session."""
+
+    calibration = models.ForeignKey(Calibration, on_delete=models.CASCADE, related_name="heart_rate")
+    timestamp = models.DateTimeField()
+    bpm = models.FloatField()
+    is_baseline = models.BooleanField(default=False)   # recorded during the calm calibration
+
+    class Meta:
+        ordering = ["timestamp"]
+        constraints = [
+            # re-sending the same samples (e.g. after a network retry) is harmless
+            models.UniqueConstraint(fields=["calibration", "timestamp"], name="inference_hr_unique_ts"),
+        ]
+
+    def __str__(self):
+        return f"{self.bpm:.0f} bpm @ {self.timestamp:%H:%M:%S}"

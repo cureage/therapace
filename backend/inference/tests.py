@@ -1,3 +1,7 @@
+import csv
+import io
+from datetime import datetime, timedelta, timezone as dt_timezone
+
 import numpy as np
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
@@ -6,7 +10,7 @@ from users.models import User
 
 from . import registry
 from .affect import quadrant
-from .models import Calibration, Prediction
+from .models import Calibration, HeartRateSample, Prediction
 
 FS = 256
 
@@ -141,6 +145,122 @@ class InferenceAPITests(APITestCase):
             self.assertEqual(self.client.get(f"/api/inference/{path}").status_code, 401)
         for path in ("calibrate/", "predict/"):
             self.assertEqual(self.client.post(f"/api/inference/{path}", {}, format="json").status_code, 401)
+
+
+T0 = datetime(2026, 11, 8, 20, 0, 0, tzinfo=dt_timezone.utc)
+
+
+def hr_series(start_s, seconds, bpm_from, bpm_to):
+    """1 Hz heart-rate readings, ramping linearly, starting start_s seconds after T0."""
+    return [{"timestamp": (T0 + timedelta(seconds=start_s + i)).isoformat(),
+             "bpm": round(bpm_from + (bpm_to - bpm_from) * i / max(seconds - 1, 1), 2)}
+            for i in range(seconds)]
+
+
+class HeartRateSessionTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(email="hr@example.com", password="pass-12345")
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {Token.objects.create(user=self.user).key}")
+
+    def run_session(self, chunks=10):
+        """60 s calibration at ~70 bpm, then `chunks` 4 s EEG chunks while HR climbs 75 -> 100 bpm."""
+        body = {**recording(60), "started_at": T0.isoformat(), "hr": hr_series(0, 60, 69, 71)}
+        r = self.client.post("/api/inference/calibrate/", body, format="json")
+        self.assertEqual(r.status_code, 201, r.data)
+        session_hr = hr_series(60, 4 * chunks, 75, 100)
+        for k in range(chunks):
+            body = {**recording(4, alpha=10 - 0.7 * k, beta=3 + k, seed=k + 1),
+                    "started_at": (T0 + timedelta(seconds=60 + 4 * k)).isoformat(),
+                    "hr": session_hr[4 * k:4 * k + 4]}
+            r = self.client.post("/api/inference/predict/", body, format="json")
+            self.assertEqual(r.status_code, 200, r.data)
+        return Calibration.objects.get(user=self.user), r.data
+
+    def test_calibration_sets_hr_baseline(self):
+        calib, last = self.run_session(chunks=1)
+        self.assertAlmostEqual(calib.baseline_hr_mean, 70, places=1)
+        self.assertEqual(calib.recorded_at, T0)
+        self.assertEqual(calib.heart_rate.filter(is_baseline=True).count(), 60)
+
+    def test_prediction_compares_hr_with_baseline(self):
+        _, last = self.run_session(chunks=10)
+        self.assertEqual(last["recorded_at"], (T0 + timedelta(seconds=96)).isoformat().replace("+00:00", "Z"))
+        self.assertGreater(last["hr_mean"], 95)
+        self.assertAlmostEqual(last["hr_delta"], last["hr_mean"] - 70, delta=0.2)
+
+    def test_hr_sent_separately_is_matched_to_prediction(self):
+        self.client.post("/api/inference/calibrate/", {**recording(60), "started_at": T0.isoformat()}, format="json")
+        r = self.client.post("/api/inference/heart-rate/", {"samples": hr_series(0, 60, 60, 60), "baseline": True},
+                             format="json")
+        self.assertEqual(r.status_code, 201, r.data)
+        self.assertEqual(r.data["baseline_hr_mean"], 60)
+        self.client.post("/api/inference/heart-rate/", {"samples": hr_series(60, 4, 90, 90)}, format="json")
+        r = self.client.post("/api/inference/predict/",
+                             {**recording(4), "started_at": (T0 + timedelta(seconds=60)).isoformat()}, format="json")
+        self.assertEqual((r.data["hr_mean"], r.data["hr_delta"]), (90, 30))
+
+    def test_resent_hr_samples_are_not_duplicated(self):
+        self.client.post("/api/inference/calibrate/", recording(60), format="json")
+        for _ in range(2):
+            self.client.post("/api/inference/heart-rate/", {"samples": hr_series(0, 5, 80, 80)}, format="json")
+        self.assertEqual(HeartRateSample.objects.count(), 5)
+
+    def test_heart_rate_validation(self):
+        self.assertEqual(self.client.post("/api/inference/heart-rate/", {"samples": hr_series(0, 1, 80, 80)},
+                                          format="json").status_code, 409)   # no session yet
+        self.client.post("/api/inference/calibrate/", recording(60), format="json")
+        for bad in ({"samples": []}, {"samples": [{"timestamp": T0.isoformat(), "bpm": 400}]},
+                    {"samples": [{"bpm": 80}]}):
+            with self.subTest(bad):
+                self.assertEqual(self.client.post("/api/inference/heart-rate/", bad, format="json").status_code, 400)
+
+    def test_session_report(self):
+        calib, _ = self.run_session(chunks=10)
+        r = self.client.get("/api/inference/sessions/latest/")
+        self.assertEqual(r.status_code, 200, r.data)
+        hr = r.data["heart_rate"]
+        self.assertEqual(r.data["session_id"], calib.pk)
+        self.assertEqual((hr["n_baseline_samples"], hr["n_session_samples"]), (60, 40))
+        self.assertAlmostEqual(hr["session_mean_bpm"], 87.5, places=1)
+        self.assertAlmostEqual(hr["mean_delta_bpm"], 17.5, delta=0.2)
+        self.assertAlmostEqual(hr["max_delta_bpm"], 30, delta=0.2)
+        self.assertAlmostEqual(hr["elevated_threshold_bpm"], 75, delta=0.1)   # baseline + 5 bpm (2 SD is smaller)
+        self.assertEqual(hr["pct_samples_elevated"], 97.5)   # 39/40: the first reading is exactly 75.0
+        self.assertEqual(r.data["fear"]["n_predictions"], 10)
+        self.assertAlmostEqual(r.data["duration_seconds"], 99)
+        self.assertEqual(self.client.get(f"/api/inference/sessions/{calib.pk}/").data["session_id"], calib.pk)
+        self.assertEqual(len(self.client.get("/api/inference/sessions/").data), 1)
+
+    def test_csv_export(self):
+        self.run_session(chunks=3)
+        r = self.client.get("/api/inference/sessions/latest/export.csv")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r["Content-Type"], "text/csv; charset=utf-8")
+        rows = list(csv.DictReader(io.StringIO(r.content.decode())))
+        kinds = [row["kind"] for row in rows]
+        self.assertEqual((kinds.count("hr_baseline"), kinds.count("hr"), kinds.count("prediction")), (60, 12, 3))
+        secs = [float(row["seconds"]) for row in rows]
+        self.assertEqual(secs, sorted(secs))
+        first_hr = next(row for row in rows if row["kind"] == "hr")
+        self.assertEqual(float(first_hr["seconds"]), 60)
+        self.assertAlmostEqual(float(first_hr["hr_delta_bpm"]), 5, delta=0.2)
+
+    def test_chart_png(self):
+        self.run_session(chunks=10)
+        r = self.client.get("/api/inference/sessions/latest/chart.png")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r["Content-Type"], "image/png")
+        self.assertTrue(r.content.startswith(b"\x89PNG"))
+
+    def test_empty_and_foreign_sessions(self):
+        self.assertEqual(self.client.get("/api/inference/sessions/latest/").status_code, 404)
+        self.client.post("/api/inference/calibrate/", recording(60), format="json")
+        self.assertEqual(self.client.get("/api/inference/sessions/latest/chart.png").status_code, 404)  # no data yet
+        calib = Calibration.objects.get(user=self.user)
+        other = User.objects.create_user(email="other-hr@example.com", password="pass-12345")
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {Token.objects.create(user=other).key}")
+        for suffix in ("", "export.csv", "chart.png"):
+            self.assertEqual(self.client.get(f"/api/inference/sessions/{calib.pk}/{suffix}").status_code, 404)
 
 
 class QuadrantTests(APITestCase):
