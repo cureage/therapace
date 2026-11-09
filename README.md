@@ -1,4 +1,4 @@
-# therapace
+# Bloom
 AI exposure therapy at your own pace
 
 ## Sensor streaming API
