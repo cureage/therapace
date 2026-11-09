@@ -89,10 +89,17 @@ Only expose a development server on a trusted network.
 
 Bloom signs in at `/api/auth/login/` and keeps the returned DRF token in
 in-memory app state. While an authenticated Muse device is connected, the app
-posts a sample to `/api/sensors/` every five seconds. At present MuseBluetoothService
-only exposes Bluetooth RSSI, so the submitted `sensor_values` contain
-`rssi_dbm`; this does not represent EEG data. The current mobile code does not
-subscribe to or decode Muse EEG notifications.
+uses the native LibMuse SDK to discover the headband, connect with its `p21`
+four-channel EEG preset, and receive the TP9, AF7, AF8, and TP10 samples in
+microvolts at 256 Hz. The app batches samples and posts them to `/api/sensors/`
+every five seconds. The payload includes `sensor_values.eeg` with its sample
+rate, units, channel names, packet sequence IDs, timestamps, and sample arrays;
+available Bluetooth RSSI is included as `sensor_values.rssi_dbm`.
+
+Settings displays the latest reading from each EEG channel and offers a JSON
+preview of the sensor payload. Sample payload previews are printed to the Xcode
+device console even when the app is not authenticated. Authenticated payloads
+are also logged in the Django console by the existing `sensor_stream` logger.
 
 ### Fitbit Air live heart rate
 

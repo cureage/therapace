@@ -1,0 +1,10 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["BloomMuseModule"],
+    "podspecPath": "BloomMuse.podspec"
+  },
+  "android": {
+    "modules": ["com.bloom.muse.BloomMuseModule"]
+  }
+}

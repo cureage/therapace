@@ -21,7 +21,7 @@
     --muted: 245 245 245;
     --muted-foreground: 115 115 115;
     --destructive: 231 0 11;
-    --foreground: white;
+    --foreground: #303030;
     --area-foreground: white;
     --border: 229 229 229;
     --input: 229 229 229;
@@ -83,7 +83,7 @@
     --muted: 245 245 245;
     --muted-foreground: 115 115 115;
     --destructive: 231 0 11;
-    --foreground: white;
+    --foreground: #303030;
     --area-foreground: white;
     --border: 229 229 229;
     --input: 229 229 229;

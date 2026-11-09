@@ -1,0 +1,422 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AE2F05D52B887E3700CC7AAD /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE2F05D42B887E3700CC7AAD /* AppDelegate.swift */; };
+		AE2F05D72B887E3700CC7AAD /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE2F05D62B887E3700CC7AAD /* SceneDelegate.swift */; };
+		AE2F05D92B887E3700CC7AAD /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE2F05D82B887E3700CC7AAD /* ViewController.swift */; };
+		AE2F05DC2B887E3700CC7AAD /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AE2F05DA2B887E3700CC7AAD /* Main.storyboard */; };
+		AE2F05DE2B887E3900CC7AAD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AE2F05DD2B887E3900CC7AAD /* Assets.xcassets */; };
+		AE2F05E12B887E3900CC7AAD /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AE2F05DF2B887E3900CC7AAD /* LaunchScreen.storyboard */; };
+		AE2F05EB2B887ED400CC7AAD /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE2F05EA2B887ED400CC7AAD /* CoreBluetooth.framework */; };
+		AE2F05ED2B887EE900CC7AAD /* Muse.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE2F05EC2B887EE900CC7AAD /* Muse.framework */; };
+		AE2F05F12B88804600CC7AAD /* GraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE2F05F02B88804600CC7AAD /* GraphView.swift */; };
+		AE2F05F22B88914500CC7AAD /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = AE2F05E92B887EC400CC7AAD /* libc++.tbd */; };
+		AE2F06012B88F00000CC7AAD /* OSCSender.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE2F06002B88F00000CC7AAD /* OSCSender.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		AE2F05D12B887E3700CC7AAD /* MuseStatsIosSwift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MuseStatsIosSwift.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE2F05D42B887E3700CC7AAD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		AE2F05D62B887E3700CC7AAD /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		AE2F05D82B887E3700CC7AAD /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		AE2F05DB2B887E3700CC7AAD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		AE2F05DD2B887E3900CC7AAD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AE2F05E02B887E3900CC7AAD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		AE2F05E22B887E3900CC7AAD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AE2F05E92B887EC400CC7AAD /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
+		AE2F05EA2B887ED400CC7AAD /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
+		AE2F05EC2B887EE900CC7AAD /* Muse.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Muse.framework; sourceTree = "<group>"; };
+		AE2F05F02B88804600CC7AAD /* GraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphView.swift; sourceTree = "<group>"; };
+		AE2F06002B88F00000CC7AAD /* OSCSender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSCSender.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AE2F05CE2B887E3700CC7AAD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AE2F05F22B88914500CC7AAD /* libc++.tbd in Frameworks */,
+				AE2F05ED2B887EE900CC7AAD /* Muse.framework in Frameworks */,
+				AE2F05EB2B887ED400CC7AAD /* CoreBluetooth.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		AE2F05C82B887E3700CC7AAD = {
+			isa = PBXGroup;
+			children = (
+				AE2F05D32B887E3700CC7AAD /* MuseStatsIosSwift */,
+				AE2F05D22B887E3700CC7AAD /* Products */,
+				AE2F05E82B887EC400CC7AAD /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		AE2F05D22B887E3700CC7AAD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AE2F05D12B887E3700CC7AAD /* MuseStatsIosSwift.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AE2F05D32B887E3700CC7AAD /* MuseStatsIosSwift */ = {
+			isa = PBXGroup;
+			children = (
+				AE2F05D42B887E3700CC7AAD /* AppDelegate.swift */,
+				AE2F05D62B887E3700CC7AAD /* SceneDelegate.swift */,
+				AE2F05D82B887E3700CC7AAD /* ViewController.swift */,
+				AE2F05DA2B887E3700CC7AAD /* Main.storyboard */,
+				AE2F05DD2B887E3900CC7AAD /* Assets.xcassets */,
+				AE2F05DF2B887E3900CC7AAD /* LaunchScreen.storyboard */,
+				AE2F05E22B887E3900CC7AAD /* Info.plist */,
+				AE2F05F02B88804600CC7AAD /* GraphView.swift */,
+				AE2F06002B88F00000CC7AAD /* OSCSender.swift */,
+			);
+			path = MuseStatsIosSwift;
+			sourceTree = "<group>";
+		};
+		AE2F05E82B887EC400CC7AAD /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				AE2F05EC2B887EE900CC7AAD /* Muse.framework */,
+				AE2F05EA2B887ED400CC7AAD /* CoreBluetooth.framework */,
+				AE2F05E92B887EC400CC7AAD /* libc++.tbd */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AE2F05D02B887E3700CC7AAD /* MuseStatsIosSwift */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AE2F05E52B887E3900CC7AAD /* Build configuration list for PBXNativeTarget "MuseStatsIosSwift" */;
+			buildPhases = (
+				AE2F05CD2B887E3700CC7AAD /* Sources */,
+				AE2F05CE2B887E3700CC7AAD /* Frameworks */,
+				AE2F05CF2B887E3700CC7AAD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MuseStatsIosSwift;
+			productName = MuseStatsIosSwift;
+			productReference = AE2F05D12B887E3700CC7AAD /* MuseStatsIosSwift.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AE2F05C92B887E3700CC7AAD /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1520;
+				LastUpgradeCheck = 1520;
+				TargetAttributes = {
+					AE2F05D02B887E3700CC7AAD = {
+						CreatedOnToolsVersion = 15.2;
+					};
+				};
+			};
+			buildConfigurationList = AE2F05CC2B887E3700CC7AAD /* Build configuration list for PBXProject "MuseStatsIosSwift" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AE2F05C82B887E3700CC7AAD;
+			productRefGroup = AE2F05D22B887E3700CC7AAD /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AE2F05D02B887E3700CC7AAD /* MuseStatsIosSwift */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AE2F05CF2B887E3700CC7AAD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AE2F05E12B887E3900CC7AAD /* LaunchScreen.storyboard in Resources */,
+				AE2F05DE2B887E3900CC7AAD /* Assets.xcassets in Resources */,
+				AE2F05DC2B887E3700CC7AAD /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AE2F05CD2B887E3700CC7AAD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AE2F05D92B887E3700CC7AAD /* ViewController.swift in Sources */,
+				AE2F05D52B887E3700CC7AAD /* AppDelegate.swift in Sources */,
+				AE2F05D72B887E3700CC7AAD /* SceneDelegate.swift in Sources */,
+				AE2F05F12B88804600CC7AAD /* GraphView.swift in Sources */,
+				AE2F06012B88F00000CC7AAD /* OSCSender.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		AE2F05DA2B887E3700CC7AAD /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				AE2F05DB2B887E3700CC7AAD /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		AE2F05DF2B887E3900CC7AAD /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				AE2F05E02B887E3900CC7AAD /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		AE2F05E32B887E3900CC7AAD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		AE2F05E42B887E3900CC7AAD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		AE2F05E62B887E3900CC7AAD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 48NKDF6FJ6;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/Muse.framework/Headers";
+				INFOPLIST_FILE = MuseStatsIosSwift/Info.plist;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "App needs to connect to Bluetooth";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "The app streams Muse EEG data to other devices on the local network via OSC.";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.interaxon.MuseStatsIosSwift;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "MuseStatsIosSwift-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AE2F05E72B887E3900CC7AAD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 48NKDF6FJ6;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/Muse.framework/Headers";
+				INFOPLIST_FILE = MuseStatsIosSwift/Info.plist;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "App needs to connect to Bluetooth";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "The app streams Muse EEG data to other devices on the local network via OSC.";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.interaxon.MuseStatsIosSwift;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "MuseStatsIosSwift-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AE2F05CC2B887E3700CC7AAD /* Build configuration list for PBXProject "MuseStatsIosSwift" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AE2F05E32B887E3900CC7AAD /* Debug */,
+				AE2F05E42B887E3900CC7AAD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AE2F05E52B887E3900CC7AAD /* Build configuration list for PBXNativeTarget "MuseStatsIosSwift" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AE2F05E62B887E3900CC7AAD /* Debug */,
+				AE2F05E72B887E3900CC7AAD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AE2F05C92B887E3700CC7AAD /* Project object */;
+}

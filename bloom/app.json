@@ -10,13 +10,14 @@
       "tsconfigPaths": true
     },
     "plugins": [
+      "./plugins/with-ios-scene-lifecycle",
       [
         "expo-splash-screen",
         {
           "backgroundColor": "#232323",
-          "image": "./assets/images/bloom-logo.png",
+          "image": "./assets/bloom-logo.png",
           "dark": {
-            "image": "./assets/images/bloom-logo.png",
+            "image": "./assets/bloom-logo.png",
             "backgroundColor": "#000000"
           },
           "imageWidth": 200
@@ -28,7 +29,8 @@
           "isBackgroundEnabled": false,
           "bluetoothAlwaysPermission": "Bloom uses Bluetooth to connect to your Muse headband and Fitbit heart-rate sensor and display live readings."
         }
-      ]
+      ],
+      "expo-video"
     ],
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
