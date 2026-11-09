@@ -157,7 +157,12 @@ async function post(path: string, body: object, token: string) {
       body: JSON.stringify(body),
       signal: controller.signal,
     });
-    if (!response.ok) throw new Error(`Could not save the session (HTTP ${response.status}).`);
+    if (!response.ok) {
+      // The body names the rejected field; keep it out of the user-facing message.
+      const detail = await response.text().catch(() => '');
+      console.warn(`Session upload to ${path} failed (HTTP ${response.status}):`, detail);
+      throw new Error(`Could not save the session (HTTP ${response.status}).`);
+    }
     return await response.json();
   } catch (error) {
     if (controller.signal.aborted) throw new Error('The upload timed out. Try saving again.');
