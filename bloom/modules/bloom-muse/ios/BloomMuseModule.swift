@@ -1,10 +1,17 @@
 import ExpoModulesCore
 import Muse
 
+
 public class BloomMuseModule: Module, IXNMuseListener, IXNMuseConnectionListener, IXNMuseDataListener {
   private let manager = IXNMuseManagerIos.sharedManager()
   private var muses: [String: IXNMuse] = [:]
   private var activeMuse: IXNMuse?
+  private let eegChannels: [(name: String, channel: IXNEeg)] = [
+    ("TP9", .EEG1),
+    ("AF7", .EEG2),
+    ("AF8", .EEG3),
+    ("TP10", .EEG4)
+  ]
   private var eegBuffers = Array(repeating: [Double](), count: 4)
   private var eegPacketCount = 0
   private var lastPacketTimestamp: Int64 = 0
@@ -48,6 +55,7 @@ public class BloomMuseModule: Module, IXNMuseListener, IXNMuseConnectionListener
       muse.register(self, type: .eeg)
       muse.setPreset(.preset21)
       muse.runAsynchronously()
+
     }
 
     AsyncFunction("disconnect") {
@@ -71,6 +79,7 @@ public class BloomMuseModule: Module, IXNMuseListener, IXNMuseConnectionListener
         "id": id,
         "name": muse.getName(),
         "rssi": muse.getRssi().isFinite ? muse.getRssi() : NSNull()
+
       ])
     }
   }
@@ -85,6 +94,7 @@ public class BloomMuseModule: Module, IXNMuseListener, IXNMuseConnectionListener
       state = "connecting"
     case .disconnected:
       state = "disconnected"
+
     case .needsLicense:
       state = "needsLicense"
     case .needsUpdate:
@@ -95,6 +105,7 @@ public class BloomMuseModule: Module, IXNMuseListener, IXNMuseConnectionListener
     let rssi = muse.getRssi()
     sendEvent("onMuseConnection", [
       "id": muse.getMacAddress(),
+
       "name": muse.getName(),
       "rssi": rssi.isFinite ? rssi : NSNull(),
       "state": state
@@ -103,9 +114,8 @@ public class BloomMuseModule: Module, IXNMuseListener, IXNMuseConnectionListener
 
   public func receive(_ packet: IXNMuseDataPacket?, muse: IXNMuse?) {
     guard let packet = packet, packet.packetType() == .eeg else { return }
-    let channels: [IXNEeg] = [.EEG1, .EEG2, .EEG3, .EEG4]
-    for (index, channel) in channels.enumerated() {
-      eegBuffers[index].append(packet.getEegChannelValue(channel))
+    for (index, channel) in eegChannels.enumerated() {
+      eegBuffers[index].append(packet.getEegChannelValue(channel.channel))
     }
     eegPacketCount += 1
     lastPacketTimestamp = packet.timestamp()
@@ -120,9 +130,10 @@ public class BloomMuseModule: Module, IXNMuseListener, IXNMuseConnectionListener
   private func sendEegBatch() {
     sendEvent("onMuseEEG", [
       "timestamp": Double(lastPacketTimestamp) / 1000,
-      "values": eegBuffers
+      "channels": Dictionary(uniqueKeysWithValues: zip(eegChannels.map(\.name), eegBuffers))
     ])
     eegBuffers = Array(repeating: [], count: 4)
     eegPacketCount = 0
+
   }
 }
