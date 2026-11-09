@@ -49,11 +49,6 @@ INTENSITY_LEVELS = {
                    "much of the frame and moving toward the camera, with lifelike detail and sound."),
 }
 
-_CATEGORY_PATTERNS = (
-    (Fear.Category.SPIDERS, re.compile(r"\bspiders?\b|arachn", re.IGNORECASE)),
-    (Fear.Category.DOGS, re.compile(r"\bdogs?\b", re.IGNORECASE)),
-    (Fear.Category.CLOWNS, re.compile(r"\bclowns?\b", re.IGNORECASE)),
-)
 
 _pool = None
 _pool_lock = threading.Lock()
@@ -106,11 +101,7 @@ def get_or_create_fear(user, name):
         .first()
     )
     if fear is None:
-        category = next(
-            (category for category, pattern in _CATEGORY_PATTERNS if pattern.search(name)),
-            Fear.Category.OTHER,
-        )
-        fear = Fear.objects.create(user=user, name=name, category=category)
+        fear = Fear.objects.create(user=user, name=name, category=name)
     return fear
 
 
