@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,20 +22,58 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-1#zm*2s)lusvfb_(yk(nq20v^6r5_9o@_b4!5nktf%o0b!!-2m'
+def env_bool(name, default):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.lower() in {"1", "true", "yes", "on"}
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = os.environ.get(
-    "DJANGO_ALLOWED_HOSTS",
-    "localhost,127.0.0.1,10.0.2.2",
-).split(",")
+DEBUG = env_bool("DJANGO_DEBUG", True)
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:8081',   # Expo web
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-1#zm*2s)lusvfb_(yk(nq20v^6r5_9o@_b4!5nktf%o0b!!-2m",
+)
+if not DEBUG and SECRET_KEY.startswith("django-insecure-"):
+    raise ImproperlyConfigured(
+        "Set DJANGO_SECRET_KEY to a secure value when DJANGO_DEBUG is false."
+    )
+
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get(
+        "DJANGO_ALLOWED_HOSTS",
+        "*" if DEBUG else "",
+    ).split(",")
+    if host.strip()
 ]
+
+CORS_ALLOW_ALL_ORIGINS = env_bool("CORS_ALLOW_ALL_ORIGINS", DEBUG)
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+
+SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", False)
+SESSION_COOKIE_SECURE = env_bool(
+    "DJANGO_SESSION_COOKIE_SECURE",
+    SECURE_SSL_REDIRECT,
+)
+CSRF_COOKIE_SECURE = env_bool(
+    "DJANGO_CSRF_COOKIE_SECURE",
+    SECURE_SSL_REDIRECT,
+)
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+if SECURE_SSL_REDIRECT:
+    SECURE_HSTS_SECONDS = 31_536_000
+    SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # Application definition
 
@@ -115,7 +155,10 @@ LOGGING = {
     'loggers': {
         'sensor_stream': {
             'handlers': ['sensor_console'],
-            'level': 'INFO',
+            'level': os.environ.get(
+                "SENSOR_STREAM_LOG_LEVEL",
+                "INFO" if DEBUG else "WARNING",
+            ),
             'propagate': False,
         },
     },
@@ -167,7 +210,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = Path(os.environ.get("DJANGO_STATIC_ROOT", BASE_DIR / "staticfiles"))
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

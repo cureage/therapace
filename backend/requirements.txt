@@ -8,3 +8,4 @@ PyJWT==2.15.1
 sqlparse==0.6.1
 tzdata==2026.6
 google-genai==3.0.0
+gunicorn==23.0.0
