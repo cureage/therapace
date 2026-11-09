@@ -162,7 +162,7 @@ Settings displays the latest reading from each EEG channel and offers a JSON
 preview of the sensor payload. Sample payload previews are printed to the Xcode
 device console even when the app is not authenticated.
 
-### Fitbit Air live heart rate
+### Wearable live heart rate
 
 Settings now has a Fitbit / Bluetooth heart-rate sensor section below the Muse
 controls. It subscribes directly to the standard Bluetooth Heart Rate Service
@@ -183,8 +183,6 @@ The panel hides readings after ten seconds without updates or while backgrounded
 
 Google's setup guide:
 https://support.google.com/googlehealth/answer/14236705?hl=en
-
-For your friend's Mac (with Xcode and iOS signing configured):
 
 ```sh
 cd bloom
