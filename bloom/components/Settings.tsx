@@ -155,7 +155,9 @@ export const Settings = () => {
                 onPress={() => void toggleConnection(connectedDevice)}
                 disabled={connectingDeviceId !== null || heartRateBusy}
                 className="min-h-9 items-center justify-center rounded-[10px] border border-primary/10 bg-area-foreground px-3 active:opacity-80 disabled:opacity-[0.55]">
-                <Text style={styles.secondaryButtonText}>Disconnect</Text>
+                <Text className={`text-xs font-bold ${
+                          status === 'Connected' ? 'text-primary' : 'text-white'
+                        }`}>Disconnect</Text>
               </Pressable>
             </View>
           )}
