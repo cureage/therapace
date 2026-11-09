@@ -128,10 +128,10 @@ export const Complete = () => {
             <Text className="text-3xl text-white">✓</Text>
           </View>
         </View>
-        <Heading size="3xl" className="text-center text-neutral-900">
+        <Heading size="3xl" className="text-center text-foreground">
           {wasCancelled ? NEXT_TIME_MESSAGE : GOOD_JOB_MESSAGE}
         </Heading>
-        <Text size="lg" className="mt-4 text-center leading-7 text-neutral-600">
+        <Text size="lg" className="mt-4 text-center leading-7 text-muted-foreground">
           {wasCancelled
             ? 'You can pause without judgment. Take care of yourself, and come back whenever you feel ready.'
             : 'You showed courage by taking this step. Every exposure helps you build confidence and become more comfortable facing your fears.'}

@@ -72,7 +72,7 @@ export const Profile = () => {
     <StyledView className="flex h-full flex-col gap-8">
       <Heading className="text-4xl font-bold">Profile</Heading>
       <View className="flex items-center justify-center">
-        <ProfilePicture />
+        <ProfilePicture name={updateProfileData?.name} />
       </View>
       <Card>
         <ScrollView contentContainerClassName="flex flex-col gap-4 pb-64">
