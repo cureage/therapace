@@ -1,0 +1,24 @@
+var searchData=
+[
+  ['acc_5fdropped_888',['ACC_DROPPED',['../enumcom_1_1choosemuse_1_1libmuse_1_1_message_type.html#a77baa90426b5edd4b4f88197d0ed4ccf',1,'com::choosemuse::libmuse::MessageType']]],
+  ['accelerometer_889',['ACCELEROMETER',['../enumcom_1_1choosemuse_1_1libmuse_1_1_message_type.html#a73ce1852af007aaa4d1100e70fd6792d',1,'com.choosemuse.libmuse.MessageType.ACCELEROMETER()'],['../enumcom_1_1choosemuse_1_1libmuse_1_1_muse_data_packet_type.html#a0c27650b1cee8c46fd49098076a3805b',1,'com.choosemuse.libmuse.MuseDataPacketType.ACCELEROMETER()']]],
+  ['alg_5fvalue_890',['ALG_VALUE',['../enumcom_1_1choosemuse_1_1libmuse_1_1_message_type.html#a99eadb77a1a31a76261364d0523ee9d7',1,'com::choosemuse::libmuse::MessageType']]],
+  ['algorithm_891',['ALGORITHM',['../enumcom_1_1choosemuse_1_1libmuse_1_1_message_type.html#ab49f83826e90dbc4f1cc3e01cdb2d06e',1,'com::choosemuse::libmuse::MessageType']]],
+  ['alpha_5fabsolute_892',['ALPHA_ABSOLUTE',['../enumcom_1_1choosemuse_1_1libmuse_1_1_muse_data_packet_type.html#a9ef15cb6c3e41b55b184408409ced6c3',1,'com::choosemuse::libmuse::MuseDataPacketType']]],
+  ['alpha_5frelative_893',['ALPHA_RELATIVE',['../enumcom_1_1choosemuse_1_1libmuse_1_1_muse_data_packet_type.html#aab43f843b3a96ff40f7e9f985155bec0',1,'com::choosemuse::libmuse::MuseDataPacketType']]],
+  ['alpha_5fscore_894',['ALPHA_SCORE',['../enumcom_1_1choosemuse_1_1libmuse_1_1_muse_data_packet_type.html#a33658bd95968c969c25b90513bde1674',1,'com::choosemuse::libmuse::MuseDataPacketType']]],
+  ['ambient_895',['AMBIENT',['../enumcom_1_1choosemuse_1_1libmuse_1_1_ppg.html#a35cac9c4df35783f751e501aecf9f617',1,'com::choosemuse::libmuse::Ppg']]],
+  ['annotation_896',['ANNOTATION',['../enumcom_1_1choosemuse_1_1libmuse_1_1_message_type.html#a7ce96f87b70d6eee6094e434c4022227',1,'com::choosemuse::libmuse::MessageType']]],
+  ['artifact_897',['ARTIFACT',['../enumcom_1_1choosemuse_1_1libmuse_1_1_message_type.html#a5b79c40618a63dbf471115edea86ad82',1,'com::choosemuse::libmuse::MessageType']]],
+  ['artifacts_898',['ARTIFACTS',['../enumcom_1_1choosemuse_1_1libmuse_1_1_muse_data_packet_type.html#a5bbdfe7c7c331b38491b2158a5236759',1,'com::choosemuse::libmuse::MuseDataPacketType']]],
+  ['as_5ffast_5fas_5fpossible_5fwith_5fsaved_5ftimestamp_899',['AS_FAST_AS_POSSIBLE_WITH_SAVED_TIMESTAMP',['../enumcom_1_1choosemuse_1_1libmuse_1_1_reader_muse_playback_settings.html#a0fb138136c68b2b16ccc892c5785d77d',1,'com::choosemuse::libmuse::ReaderMusePlaybackSettings']]],
+  ['aux1_900',['AUX1',['../enumcom_1_1choosemuse_1_1libmuse_1_1_eeg.html#a5c314feb0df2fb260b0e905f6bf5f740',1,'com::choosemuse::libmuse::Eeg']]],
+  ['aux2_901',['AUX2',['../enumcom_1_1choosemuse_1_1libmuse_1_1_eeg.html#af0359353c8d8753d914412c44d9c8e1b',1,'com::choosemuse::libmuse::Eeg']]],
+  ['aux3_902',['AUX3',['../enumcom_1_1choosemuse_1_1libmuse_1_1_eeg.html#a27a4852c3996393c94599762f2704763',1,'com::choosemuse::libmuse::Eeg']]],
+  ['aux4_903',['AUX4',['../enumcom_1_1choosemuse_1_1libmuse_1_1_eeg.html#a54e076fed3d608abf84fae5e2a52bd89',1,'com::choosemuse::libmuse::Eeg']]],
+  ['aux_5fleft_904',['AUX_LEFT',['../enumcom_1_1choosemuse_1_1libmuse_1_1_eeg.html#a696c4e9a33bf0c74b6bfba64ba10189c',1,'com::choosemuse::libmuse::Eeg']]],
+  ['aux_5fright_905',['AUX_RIGHT',['../enumcom_1_1choosemuse_1_1libmuse_1_1_eeg.html#a9703af52a6c4c4b7fea46b8bd0889550',1,'com::choosemuse::libmuse::Eeg']]],
+  ['average_5fcurrent_906',['AVERAGE_CURRENT',['../enumcom_1_1choosemuse_1_1libmuse_1_1_battery.html#a822e2111c1fa6f001308302dd39c60a7',1,'com::choosemuse::libmuse::Battery']]],
+  ['averaged_907',['AVERAGED',['../enumcom_1_1choosemuse_1_1libmuse_1_1_pressure.html#a775f1d9e7f17ccd56dd531835df6e7a1',1,'com::choosemuse::libmuse::Pressure']]],
+  ['avg_5fbody_5ftemperature_908',['AVG_BODY_TEMPERATURE',['../enumcom_1_1choosemuse_1_1libmuse_1_1_muse_data_packet_type.html#aed9758f75eb673ae668f1741d1f7b85c',1,'com::choosemuse::libmuse::MuseDataPacketType']]]
+];

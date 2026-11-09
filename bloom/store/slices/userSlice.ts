@@ -7,7 +7,7 @@ type User = {
   isOnboarding: boolean;
   streak: number;
   maxStreak: number;
-  fears: any,
+  fears: any;
   numConquered?: number;
   isConquering?: boolean;
   conqueringFear?: string;
@@ -35,13 +35,21 @@ const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-
-    setUser(state, action: PayloadAction<User>) {
-      state.currentUser = action.payload;
-      state.isOnboarding = action.payload.isOnboarding;
-      if (!state.isOnboarding) {
-        state.isAuthenticated = true;
+    setUser(state, action: PayloadAction<User & { authToken?: string }>) {
+      const { authToken, ...user } = action.payload;
+      state.currentUser = user;
+      state.authToken = authToken ?? null;
+      state.isOnboarding = user.isOnboarding;
+      state.isAuthenticated = !user.isOnboarding;
+    },
+    updateStreak(state, action: PayloadAction<{ streak: number; maxStreak: number }>) {
+      if (state.currentUser) {
+        state.currentUser.streak = action.payload.streak;
+        state.currentUser.maxStreak = action.payload.maxStreak;
       }
+    },
+    setFears(state, action: PayloadAction<string[]>) {
+      if (state.currentUser) state.currentUser.fears = action.payload;
     },
     completeOnboarding(state) {
       state.isOnboarding = false;
@@ -67,5 +75,13 @@ const userSlice = createSlice({
   },
 });
 
-export const { setUser, completeOnboarding, startConquer, endConquer, logout } = userSlice.actions;
+export const {
+  setUser,
+  updateStreak,
+  setFears,
+  completeOnboarding,
+  startConquer,
+  endConquer,
+  logout,
+} = userSlice.actions;
 export default userSlice.reducer;

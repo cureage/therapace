@@ -3,7 +3,7 @@ const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL?.replace(/\/+$/, '');
 export const endpoints = {
   login: '/api/auth/login/',
   sensorIngest: '/api/sensors/',
-  signup: '/api/auth/signup',
+  signup: '/api/auth/register/',
   leaderboard: '/api/leaderboard',
   progress: '/api/progress'
 };

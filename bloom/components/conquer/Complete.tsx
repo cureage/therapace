@@ -49,7 +49,7 @@ export const Complete = () => {
         </Text>
         <View className="bg-primary/10 mt-6 rounded-full px-5 py-3">
           <Text className="text-primary font-semibold">
-            {wasCancelled ? 'Session paused' : 'Session complete'}
+            {wasCancelled ? 'Partial session saved' : 'Session complete'}
           </Text>
         </View>
       </View>

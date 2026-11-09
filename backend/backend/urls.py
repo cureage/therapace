@@ -19,10 +19,14 @@ from django.urls import include, path
 
 from users.sensor_views import SensorIngestView
 from users.views import EEGSessionView
+from users.session_readings import SessionReadingsView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/auth/", include("users.urls")),
     path("api/sessions/", EEGSessionView.as_view(), name="eeg-session"),
+    path("api/sessions/<int:pk>/readings/", SessionReadingsView.as_view(), name="session-readings"),
     path("api/sensors/", SensorIngestView.as_view(), name="sensor-ingest"),
+    path("api/inference/", include("inference.urls")),
+    path("api/", include("users.api_urls")),   # keep last: fears/ and videos/ router
 ]
