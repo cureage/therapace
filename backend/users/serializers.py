@@ -1,19 +1,49 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
+from django.urls import reverse
 from rest_framework import serializers
 
+from . import video_generation
 from .models import AIVideo, EEGSession, Fear, User
 from .streaks import current_streak
 
 
 class AIVideoSerializer(serializers.ModelSerializer):
+    fear_name = serializers.CharField(source="fear.name", read_only=True)
+    stream_url = serializers.SerializerMethodField()
+
     class Meta:
         model = AIVideo
         fields = (
-            "id", "fear", "intensity", "prompt", "provider", "status",
-            "error_message", "video_url", "thumbnail_url", "duration_seconds", "created_at",
+            "id", "fear", "fear_name", "intensity", "prompt", "provider", "status",
+            "error_message", "video_url", "stream_url", "thumbnail_url", "duration_seconds",
+            "clip_duration_seconds", "created_at",
         )
         read_only_fields = fields   # the backend manages videos, the client only reads them
+
+    def get_stream_url(self, video):
+        """Where the app streams a ready video from (send the usual Authorization header)."""
+        if video.status != AIVideo.Status.READY or not video.video_file:
+            return None
+        path = reverse("video-stream", args=[video.pk])
+        request = self.context.get("request")
+        return request.build_absolute_uri(path) if request else path
+
+
+class ExposureVideoRequestSerializer(serializers.Serializer):
+    """Input for POST /api/videos/ from the conquer page."""
+    fear = serializers.CharField(max_length=100)
+    intensity = serializers.IntegerField(
+        min_value=video_generation.MIN_INTENSITY, max_value=video_generation.MAX_INTENSITY,
+    )
+    duration_seconds = serializers.IntegerField(
+        min_value=video_generation.MIN_DURATION_SECONDS,
+        max_value=video_generation.MAX_DURATION_SECONDS,
+    )
+    request_key = serializers.CharField(max_length=64, required=False)
+
+    def validate_fear(self, value):
+        return " ".join(value.split())
 
 
 class FearSerializer(serializers.ModelSerializer):
@@ -28,7 +58,7 @@ class FearSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "current_level", "video_count", "created_at")
 
     def validate_initial_severity(self, value):
-        if not 0 <= value <= 10:
+        if value is not None and not 0 <= value <= 10:
             raise serializers.ValidationError("Must be between 0 and 10.")
         return value
 

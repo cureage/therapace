@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-type User = {
+export type User = {
   id: string;
   email: string;
   name: string;
@@ -12,6 +12,19 @@ type User = {
   conqueringFear?: string;
 };
 
+export type PersistedSession = {
+  currentUser: User;
+  authToken: string;
+  isOnboarding: boolean;
+};
+
+/** What the user chose on the conquer page; the backend generates a matching video. */
+export type ConquerRequest = {
+  fear: string;
+  intensity: number;
+  durationSeconds: number;
+};
+
 type UserState = {
   currentUser: User | null;
   authToken: string | null;
@@ -19,6 +32,7 @@ type UserState = {
   isOnboarding: boolean;
   isConquering: boolean;
   conqueringFear?: string;
+  conquerRequest: ConquerRequest | null;
 };
 
 const initialState: UserState = {
@@ -27,6 +41,7 @@ const initialState: UserState = {
   isAuthenticated: false,
   isOnboarding: false,
   isConquering: false,
+  conquerRequest: null,
 };
 
 const userSlice = createSlice({
@@ -39,6 +54,19 @@ const userSlice = createSlice({
       state.authToken = authToken ?? null;
       state.isOnboarding = user.isOnboarding;
       state.isAuthenticated = !user.isOnboarding;
+    },
+    restoreSession(state, action: PayloadAction<PersistedSession>) {
+      state.currentUser = {
+        ...action.payload.currentUser,
+        isOnboarding: action.payload.isOnboarding,
+        isConquering: false,
+      };
+      state.authToken = action.payload.authToken;
+      state.isOnboarding = action.payload.isOnboarding;
+      state.isAuthenticated = !action.payload.isOnboarding;
+      state.isConquering = false;
+      state.conqueringFear = undefined;
+      state.conquerRequest = null;
     },
     updateStreak(state, action: PayloadAction<{ streak: number; maxStreak: number }>) {
       if (state.currentUser) {
@@ -54,13 +82,15 @@ const userSlice = createSlice({
       state.isAuthenticated = true;
       if (state.currentUser) state.currentUser.isOnboarding = false;
     },
-    startConquer(state, action: PayloadAction<string>) {
+    startConquer(state, action: PayloadAction<ConquerRequest>) {
       state.isConquering = true;
-      state.conqueringFear = action.payload;
+      state.conqueringFear = action.payload.fear;
+      state.conquerRequest = action.payload;
     },
     endConquer(state) {
       state.isConquering = false;
       state.conqueringFear = '';
+      state.conquerRequest = null;
     },
     setAuthenticated(state, action: PayloadAction<boolean>) {
       state.isAuthenticated = action.payload;
@@ -75,6 +105,7 @@ const userSlice = createSlice({
 
 export const {
   setUser,
+  restoreSession,
   updateStreak,
   setFears,
   completeOnboarding,
