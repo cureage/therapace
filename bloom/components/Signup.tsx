@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyledView } from './StyledView';
 import { Card } from './ui/card';
 import { Button, ButtonText } from './ui/button';
-import { Image, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
 import { Heading } from './ui/heading';
 import {
   FormControl,
@@ -14,59 +14,36 @@ import {
 import { Input, InputField } from '@/components/ui/input';
 import { BackButton } from '@/components/BackButton';
 import { endpoints, EMAIL_REGEX } from '@/utils/constants';
-import { useNavigation } from '@react-navigation/native';
+import { authenticate } from '@/services/AuthService';
 import { setUser } from '@/store/slices/userSlice';
 import { useAppDispatch } from '@/store/hooks';
 
 export const Signup = () => {
   const [signupData, setSignupData] = useState({ name: '', email: '', password: '' });
   const [errors, setErrors] = useState({ name: '', email: '', password: '' });
-  const navigation = useNavigation();
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const dispatch = useAppDispatch();
 
-  const handleSubmit = () => {
-    let hasError = false;
-    if (!EMAIL_REGEX.test(signupData.email)) {
-      setErrors({ ...errors, email: 'Please enter a valid email address.' });
-      hasError = true;
-    }
-    if (signupData.password.length == 0) {
-      setErrors({ ...errors, password: 'Please enter your password.' });
-      hasError = true;
-    }
-    if (signupData.email.length == 0) {
-      setErrors({ ...errors, email: 'Please enter your email address.' });
-      hasError = true;
-    }
-    if (signupData.name.length == 0) {
-      setErrors({ ...errors, name: 'Please enter your name.' });
-      hasError = true;
-    }
-
-    if (!hasError) {
-      setErrors({ ...errors, email: '', password: '', name: '' });
-      fetch(endpoints.signup, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(signupData),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          // Handle successful signup, e.g., navigate to another screen or store token
-        });
-      const placeholderData = {
-        id: '1',
-        email: 'tammy@test.com',
-        name: 'Tammy Young',
-        isOnboarding: true,
-        streak: 1,
-        maxStreak: 10,
-        fears: []
-      };
-      dispatch(setUser(placeholderData));
-      navigation.navigate('Landing' as never);
+  const handleSubmit = async () => {
+    const email = signupData.email.trim();
+    const name = signupData.name.trim();
+    const errors = {
+      name: name ? '' : 'Please enter your name.',
+      email: EMAIL_REGEX.test(email) ? '' : 'Please enter a valid email address.',
+      password: signupData.password ? '' : 'Please enter your password.',
+    };
+    setErrors(errors);
+    if (errors.name || errors.email || errors.password || submitting) return;
+    const credentials = { email, password: signupData.password, first_name: name };
+    setSubmitting(true);
+    setSubmitError('');
+    try {
+      dispatch(setUser(await authenticate(endpoints.signup, credentials, true)));
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Could not connect to the server.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -134,7 +111,8 @@ export const Signup = () => {
               <FormControlErrorText className="text-left">{errors.password}</FormControlErrorText>
             </FormControlError>
           </FormControl>
-          <Button size="lg" onPress={handleSubmit}>
+          {submitError && <Text accessibilityRole="alert">{submitError}</Text>}
+          <Button size="lg" isDisabled={submitting} onPress={() => void handleSubmit()}>
             <ButtonText className="text-white">Sign Up</ButtonText>
           </Button>
         </Card>

@@ -235,8 +235,8 @@ export const Settings = () => {
           <Text style={styles.note}>
             Devices are matched by the advertised “Muse” name, which can include other Muse models.
             BLE connects directly to the headband; it does not create an operating system Bluetooth
-            pairing. Signal quality is based on received signal strength (RSSI), which is reported
-            with available EEG packets to the backend every five seconds while signed in.
+            pairing. Signal quality is based on received signal strength (RSSI).
+            Bloom saves EEG and heart-rate readings captured during a video session.
           </Text>
         </View>
         <MuseEEGMonitor device={connectedDevice} />

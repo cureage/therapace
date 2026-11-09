@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
-from .models import AIVideo, Fear, User
+from .models import AIVideo, EEGSession, Fear, User
 from .streaks import current_streak
 
 
@@ -62,6 +62,16 @@ class UserSerializer(serializers.ModelSerializer):
 
 class EEGSessionCreateSerializer(serializers.Serializer):
     session_data = serializers.JSONField()
+    status = serializers.ChoiceField(choices=EEGSession.Status.choices, default=EEGSession.Status.COMPLETE)
+    recording_key = serializers.CharField(max_length=64, required=False)
+    started_at = serializers.DateTimeField(required=False)
+    ended_at = serializers.DateTimeField(required=False)
+
+    def validate(self, attrs):
+        start, end = attrs.get("started_at"), attrs.get("ended_at")
+        if (start is None) != (end is None) or (start is not None and end < start):
+            raise serializers.ValidationError("Provide a start and end in chronological order.")
+        return attrs
 
     def validate_session_data(self, value):
         if not isinstance(value, dict):
