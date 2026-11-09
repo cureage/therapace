@@ -209,7 +209,9 @@ class MuseBluetoothService {
   }
 
   async connect(deviceId: string): Promise<MuseDevice> {
+    const scanCallbacks = this.scanActive ? this.scanCallbacks : null;
     await this.stopScan();
+    scanCallbacks?.onComplete();
     await this.requestPermissions();
 
     if (this.connectedDevice?.id === deviceId) return this.connectedDevice;

@@ -6,7 +6,7 @@ import {
 } from '@/services/MuseEEGMeasurement';
 import { museBluetoothService } from '@/services/MuseBluetoothService';
 import type { MuseDevice } from '@/services/MuseBluetoothService';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 type Props = { device: MuseDevice | null };
@@ -21,18 +21,13 @@ export function MuseEEGMonitor({ device }: Props) {
   });
   const [expandedDeviceId, setExpandedDeviceId] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
-  const lastLoggedAt = useRef(0);
 
   useEffect(() => {
-    lastLoggedAt.current = 0;
     if (!device) return;
 
+    let pendingReadings: ChannelReadings = {};
     const unsubscribe = museBluetoothService.subscribeToEEG(({ reading, error }) => {
-      if (reading && reading.receivedAt - lastLoggedAt.current >= 5000) {
-        const preview = buildMuseEEGPayload(device.id, [reading]);
-        console.info('[Muse EEG sample payload preview]\n%s', JSON.stringify(preview, null, 2));
-        lastLoggedAt.current = reading.receivedAt;
-      }
+      if (reading) pendingReadings[reading.channel] = reading;
       setStreamData((current) => {
         const currentReadings = current.deviceId === device.id ? current.readings : {};
         return {
@@ -43,7 +38,22 @@ export function MuseEEGMonitor({ device }: Props) {
       });
     });
 
-    return unsubscribe;
+    const previewInterval = setInterval(() => {
+      const readings = MUSE_EEG_CHANNELS.flatMap((channel) => {
+        const reading = pendingReadings[channel];
+        return reading ? [reading] : [];
+      });
+      pendingReadings = {};
+      if (readings.length === 0) return;
+
+      const preview = buildMuseEEGPayload(device.id, readings);
+      console.info('[Muse EEG sample payload preview]\n%s', JSON.stringify(preview, null, 2));
+    }, 5000);
+
+    return () => {
+      clearInterval(previewInterval);
+      unsubscribe();
+    };
   }, [device]);
 
   useEffect(() => {
