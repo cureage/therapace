@@ -30,11 +30,11 @@ const TopLeader = ({
   index: number;
   myUserId?: string;
 }) => {
-  const sizeClasses = index === 0 ? '!h-28 !w-28' : '!h-24 !w-24';
+  const size = index === 0 ? 125 : 100;
   return (
     <View
       className={`flex items-center justify-center gap-2 p-3 ${user.id === myUserId ? 'bg-primary/10 rounded-lg' : ''}`}>
-      <ProfilePicture className={sizeClasses} />
+      <ProfilePicture name={user?.name} size={size} />
       <Heading>{user?.name}</Heading>
       <View className="flex items-center justify-center gap-2">
         <View className="flex-row items-center gap-1">
