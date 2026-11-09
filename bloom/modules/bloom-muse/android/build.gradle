@@ -1,0 +1,19 @@
+apply plugin: 'com.android.library'
+apply plugin: 'expo-module-gradle-plugin'
+
+group = 'com.bloom.muse'
+version = '1.0.0'
+
+android {
+  namespace 'com.bloom.muse'
+
+  sourceSets {
+    main {
+      jniLibs.srcDirs += file('../../../assets/libmuse_android_8.0.9/libs')
+    }
+  }
+}
+
+dependencies {
+  implementation files('../../../assets/libmuse_android_8.0.9/libs/libmuse_android.jar')
+}
