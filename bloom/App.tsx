@@ -11,6 +11,7 @@ import { AuthNavigator } from '@/navigators/AuthNavigator';
 import { MainNavigator } from '@/navigators/MainNavigator';
 import { OnboardingNavigator } from '@/navigators/OnboardingNavigator';
 import { ConquerNavigator } from './navigators/ConquerNavigator';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { loadSession, saveSession } from '@/services/SessionStorage';
 import { restoreSession, type PersistedSession } from '@/store/slices/userSlice';
 
@@ -21,6 +22,8 @@ const navTheme = {
     background: 'transparent',
   },
 };
+
+const queryClient = new QueryClient();
 
 function getPersistedSession(): PersistedSession | null {
   const { currentUser, authToken, isOnboarding } = store.getState().user;
@@ -83,23 +86,25 @@ function AppContent() {
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <GluestackUIProvider>
-        <NavigationContainer theme={navTheme}>
-          {!sessionRestored ? (
+        <QueryClientProvider client={queryClient}>
+          <NavigationContainer theme={navTheme}>
+            {!sessionRestored ? (
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
               <ActivityIndicator />
             </View>
           ) : isAuthenticated ? (
-            isConquering ? (
-              <ConquerNavigator />
+              isConquering ? (
+                <ConquerNavigator />
+              ) : (
+                <MainNavigator />
+              )
+            ) : isOnboarding ? (
+              <OnboardingNavigator />
             ) : (
-              <MainNavigator />
-            )
-          ) : isOnboarding ? (
-            <OnboardingNavigator />
-          ) : (
-            <AuthNavigator />
-          )}
-        </NavigationContainer>
+              <AuthNavigator />
+            )}
+          </NavigationContainer>
+        </QueryClientProvider>
       </GluestackUIProvider>
     </SafeAreaProvider>
   );

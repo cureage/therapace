@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { StyledView } from './StyledView';
-import { Button, ButtonText } from './ui/button';
+import { Button, ButtonText, ButtonIcon } from './ui/button';
 import { View, ScrollView } from 'react-native';
 import { Heading } from '@/components/ui/heading';
 import { ProfilePicture } from './ProfilePicture';
@@ -16,10 +16,13 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { Card } from './ui/card';
 import { Text } from '@/components/ui/text';
 import { MAX_FEARS } from '@/utils/constants';
-import { SquarePen } from 'lucide-react-native';
+import { SquarePen, LogOut } from 'lucide-react-native';
 import { Icon } from '@/components/ui/icon';
+import { LogoutModal } from '@/components/LogoutModal';
+import { logout } from '@/store/slices/userSlice';
 
 export const Profile = () => {
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const userData = useAppSelector((state) => state.user.currentUser);
   const [updateProfileData, setUpdateProfileData] = useState({
@@ -61,6 +64,10 @@ export const Profile = () => {
     setIsEdit(false);
   }
 
+  function onLogout() {
+    dispatch(logout());
+  }
+
   return (
     <StyledView className="flex h-full flex-col gap-8">
       <Heading className="text-4xl font-bold">Profile</Heading>
@@ -68,7 +75,7 @@ export const Profile = () => {
         <ProfilePicture />
       </View>
       <Card>
-        <ScrollView contentContainerClassName="flex flex-col gap-4">
+        <ScrollView contentContainerClassName="flex flex-col gap-4 pb-64">
           {/* Name */}
           <FormControl className="w-full" isRequired={true && isEdit} isInvalid={!!errors.name}>
             <FormControlLabel>
@@ -134,7 +141,7 @@ export const Profile = () => {
               {updateProfileData.fears.map((item: any, index: any) => (
                 <View
                   key={item}
-                  className="flex-row items-center rounded-2xl border border-neutral-200 bg-white px-4 py-3">
+                  className="bg-area-foreground flex-row items-center rounded-2xl border border-neutral-200 px-4 py-3 dark:border-neutral-600">
                   <View className="bg-primary/10 mr-3 h-7 w-7 items-center justify-center rounded-full">
                     <Text className="text-primary font-bold">{index + 1}</Text>
                   </View>
@@ -157,7 +164,7 @@ export const Profile = () => {
               ))}
               {updateProfileData.fears.length < MAX_FEARS && isEdit && (
                 <View>
-                  <Input className="min-h-14 rounded-2xl border-neutral-200 bg-white px-4">
+                  <Input className="min-h-14 rounded-2xl border-neutral-200 bg-white px-4 dark:border-neutral-600">
                     <InputField
                       placeholder={
                         updateProfileData.fears.length
@@ -235,13 +242,21 @@ export const Profile = () => {
 
           {!isEdit ? (
             <Button size="icon" variant="outline" onPress={() => setIsEdit(true)}>
-              <Icon as={SquarePen} size="lg" />
+              <ButtonText>Edit</ButtonText>
+              <ButtonIcon as={SquarePen} />
+            </Button>
+          ) : null}
+
+          {!isEdit ? (
+            <Button size="icon" variant="outline" onPress={() => setShowLogoutModal(true)}>
+              <ButtonText>Logout</ButtonText>
+              <ButtonIcon as={LogOut} />
             </Button>
           ) : null}
 
           {isEdit ? (
             <Button size="lg" onPress={() => saveProfile()}>
-              <ButtonText className="text-foreground">Save</ButtonText>
+              <ButtonText className="text-white">Save</ButtonText>
             </Button>
           ) : null}
 
@@ -250,10 +265,16 @@ export const Profile = () => {
               <ButtonText className="text-foreground">Cancel</ButtonText>
             </Button>
           ) : null}
-
-          {isEdit ? <View className="h-48" /> : null}
         </ScrollView>
       </Card>
+
+      {showLogoutModal ? (
+        <LogoutModal
+          showModal={showLogoutModal}
+          onClose={() => setShowLogoutModal(false)}
+          onLogout={onLogout}
+        />
+      ) : null}
     </StyledView>
   );
 };

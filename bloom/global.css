@@ -19,7 +19,7 @@
     --popover: 255 255 255;
     --popover-foreground: 10 10 10;
     --muted: 245 245 245;
-    --muted-foreground: 115 115 115;
+    --muted-foreground: #707070;
     --destructive: 231 0 11;
     --foreground: #303030;
     --area-foreground: white;
@@ -40,7 +40,7 @@
       --popover: 23 23 23;
       --popover-foreground: 250 250 250;
       --muted: 38 38 38;
-      --muted-foreground: 161 161 161;
+      --muted-foreground: #ababab;
       --destructive: 255 100 103;
       --foreground: white;
       --area-foreground: #323232;;
@@ -61,9 +61,9 @@
     --popover: 23 23 23;
     --popover-foreground: 250 250 250;
     --muted: 38 38 38;
-    --muted-foreground: 161 161 161;
+    --muted-foreground: #ababab;
     --destructive: 255 100 103;
-    --foreground: #454545;
+    --foreground: white;
     --area-foreground: #323232;;
     --border: 46 46 46;
     --input: 46 46 46;
@@ -81,7 +81,7 @@
     --popover: 255 255 255;
     --popover-foreground: 10 10 10;
     --muted: 245 245 245;
-    --muted-foreground: 115 115 115;
+    --muted-foreground: #707070;
     --destructive: 231 0 11;
     --foreground: #303030;
     --area-foreground: white;
@@ -102,7 +102,7 @@
   --color-popover: rgb(var(--popover));
   --color-popover-foreground: rgb(var(--popover-foreground));
   --color-muted: rgb(var(--muted));
-  --color-muted-foreground: rgb(var(--muted-foreground));
+  --color-muted-foreground: var(--muted-foreground);
   --color-destructive: rgb(var(--destructive));
   --color-foreground: var(--foreground);
   --color-area-foreground: var(--area-foreground);

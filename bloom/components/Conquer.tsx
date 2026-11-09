@@ -52,20 +52,20 @@ export const Conquer = () => {
               <View className="bg-primary h-16 w-16 rounded-full" />
             </View>
           </View>
-          <Heading size="3xl" className="text-center text-neutral-900">
+          <Heading size="3xl" className="text-center">
             Conquer Your Fears
           </Heading>
-          <Text size="lg" className="mt-4 max-w-md text-center leading-7 text-neutral-600">
+          <Text size="lg" className="mt-4 max-w-md text-center leading-7 text-muted-foreground">
             Face what scares you, one small step at a time. Exposure therapy helps you build
             confidence by gradually getting used to the things that make you anxious, at a pace that
             feels right for you.
           </Text>
-          <Text size="lg" className="mt-4 max-w-md text-center leading-7 text-neutral-600">
-            You&apos;re always in control. Pause, slow down, or stop whenever you need to.
+          <Text size="lg" className="mt-4 max-w-md text-center leading-7 text-muted-foreground">
+            You're always in control. Pause, slow down, or stop whenever you need to.
           </Text>
           <Text
             size="lg"
-            className="mt-4 max-w-md text-center leading-7 font-bold text-neutral-600">
+            className="mt-4 max-w-md text-center leading-7 font-bold text-muted-foreground">
             What do you want to conquer today?
           </Text>
         </View>
@@ -121,10 +121,10 @@ export const Conquer = () => {
                   </Slider>
                 </View>
                 <View className="flex-row justify-between">
-                  <Text className="text-xs text-neutral-500">Gentle</Text>
-                  <Text className="text-xs text-neutral-500">Intense</Text>
+                  <Text className="text-xs text-foreground">Gentle</Text>
+                  <Text className="text-xs text-foreground">Intense</Text>
                 </View>
-                <Text className="mt-2 text-sm text-neutral-600">{level.description}</Text>
+                <Text className="mt-2 text-sm text-muted-foreground">{level.description}</Text>
               </View>
               <View>
                 <View className="flex-row items-center justify-between">
@@ -148,14 +148,14 @@ export const Conquer = () => {
                   </Slider>
                 </View>
                 <View className="flex-row justify-between">
-                  <Text className="text-xs text-neutral-500">
+                  <Text className="text-xs text-foreground">
                     {formatDuration(CONQUER_DURATION_SECONDS.min)}
                   </Text>
-                  <Text className="text-xs text-neutral-500">
+                  <Text className="text-xs text-foreground">
                     {formatDuration(CONQUER_DURATION_SECONDS.max)}
                   </Text>
                 </View>
-                <Text className="mt-2 text-sm text-neutral-600">
+                <Text className="mt-2 text-sm text-muted-foreground">
                   {durationSeconds > GENERATED_CLIP_MAX_SECONDS
                     ? `Your ${GENERATED_CLIP_MAX_SECONDS}-second video repeats until the time is up.`
                     : 'How long you will watch your video.'}

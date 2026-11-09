@@ -27,10 +27,10 @@ export const Welcome = () => {
         <Text className="text-primary mb-3 font-semibold tracking-widest uppercase">
           A gentle beginning
         </Text>
-        <Heading size="3xl" className="text-center text-neutral-900">
+        <Heading size="3xl" className="text-center text-foreground">
           Welcome, {name}.
         </Heading>
-        <Text size="lg" className="mt-4 max-w-md text-center leading-7 text-neutral-600">
+        <Text size="lg" className="mt-4 max-w-md text-center leading-7 text-muted-foreground">
           Let's learn more about you so we can create an experience that feels personal, safe, and
           at your pace.
         </Text>

@@ -19,17 +19,17 @@ export const Overview = () => {
           />
         ))}
       </View>
-      <View>
-        <View className="bg-primary/10 mb-8 rounded-3xl px-5 py-4">
+      <View className='-top-1/16'>
+        <View className="bg-primary/10 dark:bg-primary/20 mb-8 rounded-3xl px-5 py-4">
           <Text className="text-primary font-bold">A little courage, repeated.</Text>
-          <Text className="mt-2 text-neutral-600">
+          <Text className="mt-2 text-muted-foreground">
             Small steps create new patterns in the brain.
           </Text>
         </View>
-        <Heading size="3xl" className="text-neutral-900">
+        <Heading size="3xl" className="text-foreground">
           Facing fears, with support
         </Heading>
-        <Text size="lg" className="mt-4 leading-7 text-neutral-600">
+        <Text size="lg" className="mt-4 leading-7 text-muted-foreground">
           Bloom uses guided exposure therapy, an evidence-informed approach shown to help people
           feel less controlled by anxiety. You choose the pace, and we help you take the next
           manageable step.

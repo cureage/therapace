@@ -73,7 +73,7 @@ export const Signup = () => {
               />
             </Input>
             <FormControlError className="w-full items-start">
-              <FormControlErrorText className="text-left">{errors.name}</FormControlErrorText>
+              <FormControlErrorText className="text-left text-red-700">{errors.name}</FormControlErrorText>
             </FormControlError>
           </FormControl>
 
@@ -91,7 +91,7 @@ export const Signup = () => {
               />
             </Input>
             <FormControlError className="w-full items-start">
-              <FormControlErrorText className="text-left">{errors.email}</FormControlErrorText>
+              <FormControlErrorText className="text-left text-red-700">{errors.email}</FormControlErrorText>
             </FormControlError>
           </FormControl>
 
@@ -108,10 +108,10 @@ export const Signup = () => {
               />
             </Input>
             <FormControlError className="w-full items-start">
-              <FormControlErrorText className="text-left">{errors.password}</FormControlErrorText>
+              <FormControlErrorText className="text-left text-red-700">{errors.password}</FormControlErrorText>
             </FormControlError>
           </FormControl>
-          {submitError && <Text accessibilityRole="alert">{submitError}</Text>}
+          {submitError && <Text accessibilityRole="alert" className='text-red-700'>{submitError}</Text>}
           <Button size="lg" isDisabled={submitting} onPress={() => void handleSubmit()}>
             <ButtonText className="text-white">Sign Up</ButtonText>
           </Button>

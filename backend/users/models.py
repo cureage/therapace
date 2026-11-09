@@ -48,16 +48,9 @@ class User(AbstractUser):
 
 
 class Fear(models.Model):
-    class Category(models.TextChoices):
-        SPIDERS = "spiders"
-        DOGS = "dogs"
-        CLOWNS = "clowns"
-        OTHER = "other"  # free-text fears from onboarding that match no category above
-
-
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="fears")
-    category = models.CharField(max_length=32, choices=Category.choices)
-    name = models.CharField(max_length=100)
+    category = models.CharField(max_length=32)
+    name = models.CharField(max_length=100)               
     description = models.TextField(blank=True)            # the user's own words; useful in the AI prompt
     # 0–10, self-rated at onboarding; empty for fears first seen on the conquer page
     initial_severity = models.PositiveSmallIntegerField(null=True, blank=True)

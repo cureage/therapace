@@ -40,17 +40,17 @@ export const Fears = () => {
           <Text className="text-primary mb-3 font-semibold tracking-widest uppercase">
             Your story
           </Text>
-          <Heading size="3xl" className="text-neutral-900">
+          <Heading size="3xl" className="text-foreground">
             What are you afraid of?
           </Heading>
-          <Text size="lg" className="mt-4 leading-7 text-neutral-600">
+          <Text size="lg" className="mt-4 leading-7 text-muted-foreground">
             This is a safe, judgment-free space. Share a little or as much as feels comfortable.
           </Text>
           <View className="mt-8 gap-3">
             {fears.map((item, index) => (
               <View
                 key={item}
-                className="flex-row items-center rounded-2xl border border-neutral-200 bg-white px-4 py-3">
+                className="flex-row items-center rounded-2xl border border-neutral-200 dark:border-neutral-600 bg-area-foreground px-4 py-3">
                 <View className="bg-primary/10 mr-3 h-7 w-7 items-center justify-center rounded-full">
                   <Text className="text-primary font-bold">{index + 1}</Text>
                 </View>
@@ -66,7 +66,7 @@ export const Fears = () => {
           </View>
           {fears.length < MAX_FEARS && (
             <View className="mt-4">
-              <Input className="min-h-14 rounded-2xl border-neutral-200 bg-white px-4">
+              <Input className="min-h-14 rounded-2xl border-neutral-200 dark:border-neutral-600 bg-white px-4">
                 <InputField
                   placeholder={
                     fears.length ? 'Add another fear' : 'For example, insects or deep water'
@@ -83,7 +83,7 @@ export const Fears = () => {
                   {fears.length} of {MAX_FEARS} added
                 </Text>
                 <Button size="sm" variant="secondary" className='bg-white border border-neutral-200 shadow-sm' isDisabled={!fear.trim()} onPress={addFear}>
-                  <ButtonText>Add fear</ButtonText>
+                  <ButtonText className='text-neutral-800'>Add fear</ButtonText>
                 </Button>
               </View>
             </View>
