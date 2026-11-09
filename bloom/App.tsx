@@ -8,11 +8,10 @@ import { useAppSelector } from './store/hooks';
 import { AuthNavigator } from '@/navigators/AuthNavigator';
 import { MainNavigator } from '@/navigators/MainNavigator';
 import { useEffect, useState } from 'react';
-import type { Device } from 'react-native-ble-plx';
-import { museBluetoothService } from '@/services/MuseBluetoothService';
+import { museBluetoothService, type MuseDevice } from '@/services/MuseBluetoothService';
 import { reportSensorPayload } from '@/services/SensorReportingService';
+import { buildMuseEEGPayload, type MuseEEGReading } from '@/services/MuseEEGMeasurement';
 import { OnboardingNavigator } from '@/navigators/OnboardingNavigator';
-
 
 const navTheme = {
   ...DefaultTheme,
@@ -25,7 +24,7 @@ const navTheme = {
 function AppContent() {
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
   const authToken = useAppSelector((state) => state.user.authToken);
-  const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
+  const [connectedDevice, setConnectedDevice] = useState<MuseDevice | null>(null);
 
   useEffect(() => {
     return museBluetoothService.subscribeToConnection(setConnectedDevice);
@@ -36,24 +35,34 @@ function AppContent() {
 
     let active = true;
     let reportInProgress = false;
+    const pendingReadings: MuseEEGReading[] = [];
+    const unsubscribe = museBluetoothService.subscribeToEEG(({ reading, error }) => {
+      if (reading) pendingReadings.push(reading);
+      if (error) console.warn('Muse EEG stream error.', error);
+    });
+
     const reportSample = async () => {
       if (!active || reportInProgress) return;
       reportInProgress = true;
+      const readings = pendingReadings.splice(0);
       try {
-        const rssi = await museBluetoothService.readSignalStrength(connectedDevice);
-        if (active && rssi !== null) {
-          await reportSensorPayload(
-            {
-              timestamp: new Date().toISOString(),
-              device_id: connectedDevice.id,
-              sensor_values: { rssi_dbm: rssi },
-            },
-            authToken
+        let rssi: number | null = null;
+        try {
+          rssi = await museBluetoothService.readSignalStrength(connectedDevice);
+        } catch (error) {
+          if (active) console.warn('Could not read the Muse signal strength.', error);
+        }
+        if (active && (rssi !== null || readings.length > 0)) {
+          const payload = buildMuseEEGPayload(connectedDevice.id, readings, rssi);
+          console.info(
+            '[Muse sensor payload sent to backend]\n%s',
+            JSON.stringify(payload, null, 2)
           );
+          await reportSensorPayload(payload, authToken);
         }
       } catch (error) {
         if (active) {
-          console.warn('Could not report Muse sensor data to the backend.', error);
+          console.warn('Could not report Muse EEG sensor data to the backend.', error);
         }
       } finally {
         reportInProgress = false;
@@ -65,17 +74,23 @@ function AppContent() {
     return () => {
       active = false;
       clearInterval(interval);
+      unsubscribe();
     };
   }, [authToken, connectedDevice]);
 
   const isOnboarding = useAppSelector((state) => state.user.isOnboarding);
 
-
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <GluestackUIProvider>
         <NavigationContainer theme={navTheme}>
-          {isAuthenticated ? <MainNavigator /> : isOnboarding ? <OnboardingNavigator /> : <AuthNavigator />}
+          {isAuthenticated ? (
+            <MainNavigator />
+          ) : isOnboarding ? (
+            <OnboardingNavigator />
+          ) : (
+            <AuthNavigator />
+          )}
         </NavigationContainer>
       </GluestackUIProvider>
     </SafeAreaProvider>
