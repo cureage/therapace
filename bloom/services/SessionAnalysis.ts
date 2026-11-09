@@ -10,7 +10,8 @@ export type SessionAnalysis = {
     exposure_mean_bpm: number;
     exposure_max_bpm: number;
     change_bpm: number | null;
-    timeline: { seconds: number; bpm: number }[];
+    /** Missing on analyses saved by older app/backend versions. */
+    timeline?: { seconds: number; bpm: number }[];
   } | null;
   /** Estimated by the EEG fear model; null without enough Muse data. */
   fear: {

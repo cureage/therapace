@@ -4,18 +4,19 @@ import { Text } from '@/components/ui/text';
 
 type HeartRatePoint = { seconds: number; bpm: number };
 
-export const HeartRateChart = ({ points }: { points: HeartRatePoint[] }) => {
-  if (points.length === 0) return null;
+export const HeartRateChart = ({ points }: { points?: HeartRatePoint[] | null }) => {
+  const chartPoints = Array.isArray(points) ? points : [];
+  if (chartPoints.length === 0) return null;
 
   const width = 320;
   const height = 120;
   const padding = 12;
-  const values = points.map((point) => point.bpm);
+  const values = chartPoints.map((point) => point.bpm);
   const min = Math.min(...values);
   const max = Math.max(...values);
   const range = Math.max(max - min, 1);
-  const lastSecond = Math.max(points[points.length - 1].seconds, 1);
-  const coordinates = points.map((point) => ({
+  const lastSecond = Math.max(chartPoints[chartPoints.length - 1].seconds, 1);
+  const coordinates = chartPoints.map((point) => ({
     x: padding + (Math.max(point.seconds, 0) / lastSecond) * (width - padding * 2),
     y: height - padding - ((point.bpm - min) / range) * (height - padding * 2),
   }));
