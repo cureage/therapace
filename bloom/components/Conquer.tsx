@@ -121,10 +121,10 @@ export const Conquer = () => {
                   </Slider>
                 </View>
                 <View className="flex-row justify-between">
-                  <Text className="text-xs text-neutral-500">Gentle</Text>
-                  <Text className="text-xs text-neutral-500">Intense</Text>
+                  <Text className="text-xs text-foreground">Gentle</Text>
+                  <Text className="text-xs text-foreground">Intense</Text>
                 </View>
-                <Text className="mt-2 text-sm text-neutral-600">{level.description}</Text>
+                <Text className="mt-2 text-sm text-muted-foreground">{level.description}</Text>
               </View>
               <View>
                 <View className="flex-row items-center justify-between">
@@ -148,14 +148,14 @@ export const Conquer = () => {
                   </Slider>
                 </View>
                 <View className="flex-row justify-between">
-                  <Text className="text-xs text-neutral-500">
+                  <Text className="text-xs text-foreground">
                     {formatDuration(CONQUER_DURATION_SECONDS.min)}
                   </Text>
-                  <Text className="text-xs text-neutral-500">
+                  <Text className="text-xs text-foreground">
                     {formatDuration(CONQUER_DURATION_SECONDS.max)}
                   </Text>
                 </View>
-                <Text className="mt-2 text-sm text-neutral-600">
+                <Text className="mt-2 text-sm text-muted-foreground">
                   {durationSeconds > GENERATED_CLIP_MAX_SECONDS
                     ? `Your ${GENERATED_CLIP_MAX_SECONDS}-second video repeats until the time is up.`
                     : 'How long you will watch your video.'}

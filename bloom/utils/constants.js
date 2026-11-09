@@ -5,7 +5,7 @@ export const endpoints = {
   sensorIngest: '/api/sensors/',
   signup: '/api/auth/register/',
   leaderboard: '/api/leaderboard',
-  progress: '/api/progress'
+  progress: '/api/progress',
   videos: '/api/videos/',
 };
 
