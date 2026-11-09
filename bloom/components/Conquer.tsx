@@ -106,7 +106,7 @@ export const Conquer = () => {
                     {intensity} · {level.label}
                   </Text>
                 </View>
-                <View className="mt-2" {...holdScroll}>
+                <View className="mt-2 mx-4" {...holdScroll}>
                   <Slider
                     aria-label="Intensity"
                     value={intensity}
@@ -133,7 +133,7 @@ export const Conquer = () => {
                     {formatDuration(durationSeconds)}
                   </Text>
                 </View>
-                <View className="mt-2" {...holdScroll}>
+                <View className="mt-2 mx-4" {...holdScroll}>
                   <Slider
                     aria-label="Duration in seconds"
                     value={durationSeconds}
