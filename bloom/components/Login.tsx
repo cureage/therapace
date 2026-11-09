@@ -65,9 +65,11 @@ export const Login = () => {
             <Input className="my-1">
               <InputField
                 type="text"
+                autoComplete="username"
+                textContentType="username"
                 placeholder="example@domain.com"
                 value={loginData.email}
-                onChangeText={(text) => setLoginData({ ...loginData, email: text })}
+                onChangeText={(text) => setLoginData((current) => ({ ...current, email: text }))}
               />
             </Input>
             <FormControlError className="w-full items-start">
@@ -83,8 +85,9 @@ export const Login = () => {
             <Input className="my-1">
               <InputField
                 type="password"
+                autoComplete="current-password"
                 value={loginData.password}
-                onChangeText={(text) => setLoginData({ ...loginData, password: text })}
+                onChangeText={(text) => setLoginData((current) => ({ ...current, password: text }))}
               />
             </Input>
             <FormControlError className="w-full items-start">

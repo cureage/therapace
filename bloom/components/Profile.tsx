@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { StyledView } from './StyledView';
-import { Button, ButtonText } from './ui/button';
+import { Button, ButtonText, ButtonIcon } from './ui/button';
 import { View, ScrollView } from 'react-native';
 import { Heading } from '@/components/ui/heading';
 import { ProfilePicture } from './ProfilePicture';
@@ -16,10 +16,13 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { Card } from './ui/card';
 import { Text } from '@/components/ui/text';
 import { MAX_FEARS } from '@/utils/constants';
-import { SquarePen } from 'lucide-react-native';
+import { SquarePen, LogOut } from 'lucide-react-native';
 import { Icon } from '@/components/ui/icon';
+import { LogoutModal } from '@/components/LogoutModal';
+import { logout } from '@/store/slices/userSlice';
 
 export const Profile = () => {
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const userData = useAppSelector((state) => state.user.currentUser);
   const [updateProfileData, setUpdateProfileData] = useState({
@@ -59,6 +62,10 @@ export const Profile = () => {
       confirmPassword: '',
     });
     setIsEdit(false);
+  }
+
+  function onLogout() {
+    dispatch(logout());
   }
 
   return (
@@ -134,7 +141,7 @@ export const Profile = () => {
               {updateProfileData.fears.map((item: any, index: any) => (
                 <View
                   key={item}
-                  className="bg-area-foreground flex-row items-center rounded-2xl border border-neutral-200 dark:border-neutral-600 px-4 py-3">
+                  className="bg-area-foreground flex-row items-center rounded-2xl border border-neutral-200 px-4 py-3 dark:border-neutral-600">
                   <View className="bg-primary/10 mr-3 h-7 w-7 items-center justify-center rounded-full">
                     <Text className="text-primary font-bold">{index + 1}</Text>
                   </View>
@@ -235,7 +242,15 @@ export const Profile = () => {
 
           {!isEdit ? (
             <Button size="icon" variant="outline" onPress={() => setIsEdit(true)}>
-              <Icon as={SquarePen} size="lg" />
+              <ButtonText>Edit</ButtonText>
+              <ButtonIcon as={SquarePen} />
+            </Button>
+          ) : null}
+
+          {!isEdit ? (
+            <Button size="icon" variant="outline" onPress={() => setShowLogoutModal(true)}>
+              <ButtonText>Logout</ButtonText>
+              <ButtonIcon as={LogOut} />
             </Button>
           ) : null}
 
@@ -252,6 +267,14 @@ export const Profile = () => {
           ) : null}
         </ScrollView>
       </Card>
+
+      {showLogoutModal ? (
+        <LogoutModal
+          showModal={showLogoutModal}
+          onClose={() => setShowLogoutModal(false)}
+          onLogout={onLogout}
+        />
+      ) : null}
     </StyledView>
   );
 };
