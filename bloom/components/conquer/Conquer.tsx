@@ -16,6 +16,7 @@ import {
   takeHandedOffRecording,
   type CapturedSession,
 } from '@/services/SessionRecording';
+import { useShake } from '@/hooks/useShake';
 
 const PROGRESS_TICK_MS = 250;
 
@@ -48,6 +49,18 @@ export const Conquer = () => {
   const [pending, setPending] = useState<CapturedSession | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useShake(
+    () => {
+      if (pending) void upload(pending);
+      else finish(true);
+    },
+    {
+      threshold: 4.0,
+      updateInterval: 80,
+      cooldown: 1200,
+    }
+  );
 
   const upload = useCallback(
     async (recording: CapturedSession) => {
