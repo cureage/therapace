@@ -1,6 +1,11 @@
 import { requireOptionalNativeModule } from 'expo-modules-core';
 import { PermissionsAndroid, Platform } from 'react-native';
-import { MUSE_EEG_CHANNELS, type MuseEEGChannel, type MuseEEGEvent } from './MuseEEGMeasurement';
+import {
+  MUSE_EEG_CHANNELS,
+  keepFiniteSamples,
+  type MuseEEGChannel,
+  type MuseEEGEvent,
+} from './MuseEEGMeasurement';
 
 const SCAN_DURATION_MS = 10_000;
 const CONNECT_TIMEOUT_MS = 20_000;
@@ -109,8 +114,9 @@ class MuseBluetoothService {
 
     this.nativeModule?.addListener('onMuseEEG', ({ timestamp, channels }) => {
       this.clearEEGTimeout();
+      const valid = keepFiniteSamples(channels);
       MUSE_EEG_CHANNELS.forEach((channel) => {
-        const samples = channels[channel];
+        const samples = valid[channel];
         if (!samples || samples.length === 0) return;
         this.emitEEGEvent({
           reading: {

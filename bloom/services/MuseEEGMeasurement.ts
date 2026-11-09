@@ -17,6 +17,28 @@ export type MuseEEGEvent = {
   error?: string;
 };
 
+/**
+ * libmuse emits NaN-filled packets in place of dropped ones, and the backend rejects a readings
+ * batch containing any non-finite sample. Drop each sample position that is not finite on every
+ * channel, so the channels keep equal lengths (session analysis discards misaligned frames).
+ */
+export function keepFiniteSamples(
+  channels: Partial<Record<MuseEEGChannel, number[]>>
+): Partial<Record<MuseEEGChannel, number[]>> {
+  const present = MUSE_EEG_CHANNELS.flatMap((channel) => {
+    const samples = channels[channel];
+    return samples?.length ? [[channel, samples] as const] : [];
+  });
+  const length = Math.max(0, ...present.map(([, samples]) => samples.length));
+  const kept: number[] = [];
+  for (let index = 0; index < length; index++) {
+    if (present.every(([, samples]) => Number.isFinite(samples[index]))) kept.push(index);
+  }
+  return Object.fromEntries(
+    present.map(([channel, samples]) => [channel, kept.map((index) => samples[index])])
+  );
+}
+
 export function buildMuseEEGPayload(
   deviceId: string,
   readings: MuseEEGReading[],

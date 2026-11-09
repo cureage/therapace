@@ -221,6 +221,12 @@ export const Conquer = () => {
             {isSaving ? 'Saving session…' : pending ? 'Retry save' : 'Cancel session'}
           </ButtonText>
         </Button>
+        {/* A rejected upload fails the same way on every retry, so always offer a way out. */}
+        {pending && error && !isSaving ? (
+          <Button size="lg" variant="outline" onPress={() => dispatch(endConquer())}>
+            <ButtonText>Leave without saving</ButtonText>
+          </Button>
+        ) : null}
       </View>
     </View>
   );
