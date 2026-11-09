@@ -1,33 +1,48 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { StackActions, useNavigation, useRoute } from '@react-navigation/native';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { StatusBar } from 'expo-status-bar';
-import { BackHandler, StyleSheet, Text, View } from 'react-native';
+import { BackHandler, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, ButtonText } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
+import { exposureVideoSource, type ExposureVideo } from '@/services/ExposureVideoService';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { updateStreak } from '@/store/slices/userSlice';
+import { endConquer, updateStreak } from '@/store/slices/userSlice';
 import {
   saveSession,
   startSessionRecording,
   type CapturedSession,
 } from '@/services/SessionRecording';
 
-const PLACEHOLDER_VIDEOS = [
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
-];
-const VIDEO_URL = PLACEHOLDER_VIDEOS[Math.floor(Math.random() * PLACEHOLDER_VIDEOS.length)];
+const PROGRESS_TICK_MS = 250;
 
 export const Conquer = () => {
   const navigation = useNavigation();
-  const player = useVideoPlayer(VIDEO_URL);
+  const route = useRoute();
+  const video = (route.params as { video?: ExposureVideo } | undefined)?.video;
   const dispatch = useAppDispatch();
-  const fear = useAppSelector((state) => state.user.conqueringFear);
+  const conquer = useAppSelector((state) => state.user.conquerRequest);
   const token = useAppSelector((state) => state.user.authToken);
+  const insets = useSafeAreaInsets();
+  // Streamed from the backend with range requests; the stream endpoint needs the auth token.
+  const streamUrl = video?.stream_url ?? null;
+  const source = useMemo(
+    () => (streamUrl && token ? exposureVideoSource(streamUrl, token) : null),
+    [streamUrl, token]
+  );
+  // The session lasts as long as the user chose. Clips are capped at 15 s, so shorter clips loop.
+  const sessionSeconds = conquer?.durationSeconds ?? video?.duration_seconds ?? 0;
+  const loops = !!video?.clip_duration_seconds && sessionSeconds > video.clip_duration_seconds;
+  const player = useVideoPlayer(source, (newPlayer) => {
+    newPlayer.loop = loops;
+  });
   const active = useRef<ReturnType<typeof startSessionRecording> | null>(null);
   const finished = useRef(false);
   const saving = useRef(false);
+  const watchedSeconds = useRef(0);
+  const playingSince = useRef<number | null>(null);
+  const [progress, setProgress] = useState(0);
   const [pending, setPending] = useState<CapturedSession | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,22 +81,37 @@ export const Conquer = () => {
     (partial: boolean) => {
       if (finished.current) return;
       finished.current = true;
-      const recording = (active.current ?? startSessionRecording()).finish(partial, fear);
+      const recording = (active.current ?? startSessionRecording()).finish(partial, {
+        fear: conquer?.fear,
+        intensity: conquer?.intensity,
+        duration_seconds: sessionSeconds,
+        video_id: video?.id,
+      });
       active.current = null;
       player.pause();
       setPending(recording);
       void upload(recording);
     },
-    [fear, player, upload]
+    [conquer?.fear, conquer?.intensity, player, sessionSeconds, upload, video?.id]
   );
 
   useEffect(() => {
+    if (!source) return;
     const playback = player.addListener('playingChange', ({ isPlaying }) => {
-      if (isPlaying && !finished.current && !active.current) {
-        active.current = startSessionRecording();
+      if (isPlaying) {
+        playingSince.current ??= Date.now();
+        if (!finished.current && !active.current) {
+          active.current = startSessionRecording();
+        }
+      } else if (playingSince.current !== null) {
+        watchedSeconds.current += (Date.now() - playingSince.current) / 1000;
+        playingSince.current = null;
       }
     });
-    const ended = player.addListener('playToEnd', () => finish(false));
+    // A looping clip reaches its end on every repeat; only a single play-through ends here.
+    const ended = player.addListener('playToEnd', () => {
+      if (!loops) finish(false);
+    });
     const status = player.addListener('statusChange', ({ status }) => {
       if (status === 'error' && !finished.current) {
         if (active.current) finish(true);
@@ -101,10 +131,36 @@ export const Conquer = () => {
       active.current?.stop();
       active.current = null;
     };
-  }, [finish, player]);
+  }, [finish, loops, player, source]);
+
+  // Count the time actually spent watching; looping sessions end once the chosen time has played.
+  useEffect(() => {
+    if (!source || sessionSeconds <= 0) return;
+    const interval = setInterval(() => {
+      if (finished.current) return;
+      const since = playingSince.current;
+      const watched = watchedSeconds.current + (since === null ? 0 : (Date.now() - since) / 1000);
+      setProgress(Math.min(watched / sessionSeconds, 1));
+      if (loops && watched >= sessionSeconds) finish(false);
+    }, PROGRESS_TICK_MS);
+    return () => clearInterval(interval);
+  }, [finish, loops, sessionSeconds, source]);
+
+  if (!source) {
+    return (
+      <View className="flex-1 items-center justify-center gap-6 bg-black px-6">
+        <Text accessibilityRole="alert" className="text-center text-white">
+          Your video could not be loaded.
+        </Text>
+        <Button size="lg" variant="outline" onPress={() => dispatch(endConquer())}>
+          <ButtonText>Back to my fears</ButtonText>
+        </Button>
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-black">
       <StatusBar hidden />
       <VideoView
         player={player}
@@ -112,9 +168,17 @@ export const Conquer = () => {
         contentFit="cover"
         style={StyleSheet.absoluteFill}
       />
-      <View style={styles.cancelButtonContainer}>
+      <View
+        className="absolute right-5 left-5 h-1 overflow-hidden rounded-full bg-white/30"
+        style={{ top: insets.top + 12 }}>
+        <View
+          className="bg-primary h-full rounded-full"
+          style={{ width: `${progress * 100}%` as const }}
+        />
+      </View>
+      <View className="absolute right-5 bottom-10 left-5 gap-3">
         {error && (
-          <Text accessibilityRole="alert" style={styles.error}>
+          <Text accessibilityRole="alert" className="rounded-xl bg-neutral-900 p-3 text-white">
             {error}
           </Text>
         )}
@@ -134,17 +198,3 @@ export const Conquer = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'black',
-  },
-  cancelButtonContainer: {
-    position: 'absolute',
-    right: 20,
-    bottom: 40,
-    left: 20,
-  },
-  error: { color: 'white', backgroundColor: '#222', padding: 12 },
-});

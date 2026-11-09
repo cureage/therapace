@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.platforms      = { :ios => '15.5' }
   s.swift_version  = '5.0'
   s.source         = { :path => '.' }
-  s.source_files   = 'ios/**/*.{h,m,mm,swift}'
+  s.source_files   = 'ios/**/*.swift'
   s.vendored_frameworks = 'ios/Muse.framework'
   s.static_framework = true
   s.frameworks     = 'CoreBluetooth', 'ExternalAccessory'

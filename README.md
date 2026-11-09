@@ -96,8 +96,18 @@ sudo git clone https://github.com/cureage/therapace.git /opt/therapace
 cd /opt/therapace
 sudo env APP_HOSTNAME=api.example.com \
   LETSENCRYPT_EMAIL=admin@example.com \
+  GEMINI_API_KEY=your-gemini-key \
   ./backend/deploy-ec2.sh
 ```
+
+`GEMINI_API_KEY` enables [conquer page videos](#conquer-page-exposure-videos).
+The installer saves it in `/etc/therapace/backend.env` and keeps it on later
+runs, so you only need to pass it once (or when you change it).
+For an existing EC2 install, you can also set it in
+`/etc/therapace/backend.env` and restart `therapace-gunicorn` and
+`therapace-daphne`. If you use a project `.env` instead, put it in
+`backend/.env` beside `manage.py` (not in `backend/backend/`); the backend
+loads that file explicitly.
 
 For Amazon Linux 2023, the script installs Python 3.13 and uses `dnf`; it
 configures Nginx under `/etc/nginx/conf.d` and applies SELinux rules for the
@@ -175,3 +185,57 @@ Decoder checks (no Bluetooth hardware required):
 cd bloom
 node --test services/HeartRateMeasurement.test.cjs
 ```
+
+## Conquer page exposure videos
+
+On the Conquer tab, the user picks a fear, an intensity from 1 (gentle:
+cartoon-like and far away) to 5 (intense: right up close), and a session length
+from 3 seconds to 1 minute. Bloom asks the backend for a video. The backend
+writes an exposure-therapy prompt for that fear and intensity and generates the
+clip with Gemini Omni Flash through the Interactions API, the same call as
+`backend/test.py`. While Gemini works (usually a minute or two), the app shows
+a breathing exercise. It then streams the finished MP4 from the backend.
+
+Gemini generates at most 15 seconds per clip, so longer sessions loop the clip
+until the chosen time has played. The session then ends and is saved as usual.
+
+Video output needs a paid Gemini API key; it is billed per second of video
+(about $0.07/s at 720p for `gemini-omni-1.2-flash`). Set the key and apply the
+migration:
+
+```sh
+cd backend
+export GEMINI_API_KEY=your-gemini-key   # PowerShell: $env:GEMINI_API_KEY="your-gemini-key"
+python manage.py migrate
+./run-lan.sh
+```
+
+Without a key, `POST /api/videos/` returns 503. Optional settings:
+
+| Variable | Default | Notes |
+| --- | --- | --- |
+| `GEMINI_VIDEO_MODEL` | `gemini-omni-1.2-flash` | `gemini-omni-flash-preview`, used by `test.py`, has been shut down |
+| `GEMINI_VIDEO_RESOLUTION` | `720p` | `360p`, `720p`, `1080p` or `4k` |
+| `GEMINI_VIDEO_ASPECT_RATIO` | `9:16` | Portrait fills the phone screen; `16:9` also works |
+| `GEMINI_VIDEO_MAX_CLIP_SECONDS` | `15` | The model's per-clip limit (10 for `gemini-omni-1.1-flash`) |
+| `GEMINI_VIDEO_TIMEOUT_SECONDS` | `600` | Longest wait for one generation |
+| `GEMINI_VIDEO_MAX_CONCURRENT` | `2` | Generations at once in each server process |
+| `GEMINI_VIDEO_RATE_LIMIT` | `30/hour` | Video requests per user |
+| `DJANGO_MEDIA_ROOT` | `backend/media` | Where generated videos are stored |
+
+The endpoints use the usual `Authorization: Token YOUR_TOKEN` header:
+
+- `POST /api/videos/` with
+  `{"fear": "Spiders", "intensity": 3, "duration_seconds": 30, "request_key": "optional-retry-key"}`
+  returns 202 and the video with `status: "pending"`. Sending the same
+  `request_key` again returns that video instead of paying for another one.
+- `GET /api/videos/{id}/`: poll until `status` is `ready` (then `stream_url` is
+  set) or `failed` (`error_message` says why).
+- `GET /api/videos/{id}/stream/`: the MP4, with the HTTP Range support that
+  iOS and Android video players need for streaming.
+
+Generation runs on a background thread inside the Gunicorn or Daphne process,
+so no extra services are needed. Restarting the backend abandons generations in
+progress; they are marked failed the next time the app polls them. Videos are
+visible only to their owner and are not served by Nginx; back up
+`backend/media` along with the database.

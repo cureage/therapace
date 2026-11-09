@@ -52,7 +52,8 @@ class Fear(models.Model):
     category = models.CharField(max_length=32)
     name = models.CharField(max_length=100)               
     description = models.TextField(blank=True)            # the user's own words; useful in the AI prompt
-    initial_severity = models.PositiveSmallIntegerField() # 0–10, self-rated at onboarding
+    # 0–10, self-rated at onboarding; empty for fears first seen on the conquer page
+    initial_severity = models.PositiveSmallIntegerField(null=True, blank=True)
     current_level = models.PositiveSmallIntegerField(default=1)  # how far up the ladder they are
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -65,16 +66,28 @@ class AIVideo(models.Model):
         FAILED = "failed"
 
     fear = models.ForeignKey(Fear, on_delete=models.CASCADE, related_name="videos")
-    intensity = models.PositiveSmallIntegerField()        # 1 = cartoon spider far away … 10 = spider on your hand
+    # Conquer page: 1 = cartoon-like and far away … 5 = right up close
+    intensity = models.PositiveSmallIntegerField()
     prompt = models.TextField()                           # the exact prompt sent to the generator
-    provider = models.CharField(max_length=50, blank=True)  # "runway", "veo", "sora", …
+    provider = models.CharField(max_length=50, blank=True)  # model that made it, e.g. "gemini-omni-1.2-flash"
     external_job_id = models.CharField(max_length=255, blank=True)
+    # Client-generated idempotency key: retrying a request returns the same video instead of paying twice
+    request_key = models.CharField(max_length=64, null=True, blank=True)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING)
     error_message = models.TextField(blank=True)
-    video_url = models.URLField(blank=True)               # or a FileField if you download it
+    video_url = models.URLField(blank=True)
+    # Generated MP4 in MEDIA_ROOT, streamed to the owner by GET /api/videos/{id}/stream/
+    video_file = models.FileField(upload_to="exposure_videos/", blank=True)
     thumbnail_url = models.URLField(blank=True)
-    duration_seconds = models.FloatField(null=True, blank=True)
+    duration_seconds = models.FloatField(null=True, blank=True)  # requested exposure length
+    # Generated clip length (the model caps clips at 15 s); the app loops it to fill duration_seconds
+    clip_duration_seconds = models.PositiveSmallIntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["request_key"], name="aivideo_request_key_unique"),
+        ]
 
 
 class EEGSession(models.Model):

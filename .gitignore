@@ -6,6 +6,7 @@ env/
 build/
 __pycache__/
 db.sqlite3
+media/
 *.pyc
 
 .DS_Store

@@ -90,6 +90,7 @@ export const Settings = () => {
         return;
       }
 
+      setScanning(false);
       setConnectingDeviceId(device.id);
       try {
         const connected = await museBluetoothService.connect(device.id);

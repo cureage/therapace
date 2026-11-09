@@ -58,7 +58,7 @@ export function startSessionRecording() {
 
   return {
     stop,
-    finish(partial: boolean, fear?: string) {
+    finish(partial: boolean, sessionData: Record<string, unknown> = {}) {
       const endedAt = Math.max(startedAt, Date.now());
       stop();
       const batches: Batch[] = [];
@@ -78,7 +78,7 @@ export function startSessionRecording() {
           status: partial ? 'partial' : 'complete',
           started_at: new Date(startedAt).toISOString(),
           ended_at: new Date(endedAt).toISOString(),
-          session_data: { fear },
+          session_data: sessionData,
         },
         batches,
       };

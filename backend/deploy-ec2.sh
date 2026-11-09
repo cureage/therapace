@@ -121,6 +121,13 @@ fi
 if [ -z "$secret_key" ]; then
   secret_key="$(openssl rand -base64 48 | tr -d '\n')"
 fi
+gemini_api_key="${GEMINI_API_KEY:-}"
+if [ -z "$gemini_api_key" ] && [ -f "$ENV_FILE" ]; then
+  gemini_api_key="$(sed -n 's/^GEMINI_API_KEY=//p' "$ENV_FILE" | head -n 1)"
+fi
+if [ -z "$gemini_api_key" ]; then
+  echo "GEMINI_API_KEY is not set; exposure video generation stays disabled until it is added to $ENV_FILE." >&2
+fi
 
 secure_redirect=True
 csrf_origin="https://$APP_HOSTNAME"
@@ -138,6 +145,9 @@ DJANGO_SESSION_COOKIE_SECURE=$secure_redirect
 DJANGO_CSRF_COOKIE_SECURE=$secure_redirect
 SENSOR_STREAM_LOG_LEVEL=WARNING
 EOF
+if [ -n "$gemini_api_key" ]; then
+  printf 'GEMINI_API_KEY=%s\n' "$gemini_api_key" >> "$tmp_env_file"
+fi
 chmod 0640 "$tmp_env_file"
 chown root:"$APP_GROUP" "$tmp_env_file"
 mv "$tmp_env_file" "$ENV_FILE"
