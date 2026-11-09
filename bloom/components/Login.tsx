@@ -60,6 +60,7 @@ export const Login = () => {
         streak: 0,
         maxStreak: 10,
         fears: ['Spiders', 'Clowns'],
+        numConquered: 6
       };
       dispatch(setUser(placeholderData));
       navigation.navigate('Landing' as never);

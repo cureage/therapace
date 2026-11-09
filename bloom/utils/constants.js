@@ -4,7 +4,8 @@ export const endpoints = {
   login: '/api/auth/login/',
   sensorIngest: '/api/sensors/',
   signup: '/api/auth/signup',
-  leaderboard: '/api/leaderboard'
+  leaderboard: '/api/leaderboard',
+  progress: '/api/progress'
 };
 
 export function getApiUrl(path) {

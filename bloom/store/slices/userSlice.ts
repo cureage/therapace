@@ -8,6 +8,7 @@ type User = {
   streak: number;
   maxStreak: number;
   fears: any,
+  numConquered?: number;
   isConquering?: boolean;
   conqueringFear?: string;
 };
@@ -19,6 +20,7 @@ type UserState = {
   isOnboarding: boolean;
   isConquering: boolean;
   conqueringFear?: string;
+  numConquered?: number;
 };
 
 const initialState: UserState = {
