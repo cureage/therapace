@@ -14,9 +14,9 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#232323",
-          "image": "./assets/images/bloom-logo.png",
+          "image": "./assets/bloom-logo.png",
           "dark": {
-            "image": "./assets/images/bloom-logo.png",
+            "image": "./assets/bloom-logo.png",
             "backgroundColor": "#000000"
           },
           "imageWidth": 200
@@ -27,7 +27,8 @@
         {
           "bluetoothAlwaysPermission": "Bloom uses Bluetooth to find and connect to your Muse headband."
         }
-      ]
+      ],
+      "expo-video"
     ],
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
