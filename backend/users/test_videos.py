@@ -18,7 +18,7 @@ from .models import AIVideo, Fear, User
 
 GEMINI_TEST_SETTINGS = {
     "API_KEY": "test-key",
-    "MODEL": "gemini-omni-1.2-flash",
+    "MODEL": "gemini-omni-flash-preview",
     "RESOLUTION": "720p",
     "ASPECT_RATIO": "9:16",
     "MAX_CLIP_SECONDS": 15,
@@ -76,7 +76,7 @@ class ExposureVideoRequestTests(IsolatedMediaMixin, APITestCase):
         self.assertEqual((video.duration_seconds, video.clip_duration_seconds), (40, 15))
         self.assertEqual(video.fear.user, self.user)
         self.assertEqual(video.fear.category, Fear.Category.SPIDERS)
-        self.assertEqual(video.provider, "gemini-omni-1.2-flash")
+        self.assertEqual(video.provider, "gemini-omni-flash-preview")
         self.assertIn("fear of Spiders", video.prompt)
         self.assertIn("intensity 2 of 5 (mild)", video.prompt)
         self.assertIn("plays on a loop", video.prompt)
@@ -236,7 +236,7 @@ class GenerateVideoTests(IsolatedMediaMixin, TestCase):
 
         client_class.assert_called_once_with(api_key="test-key")
         client.interactions.create.assert_called_once_with(
-            model="gemini-omni-1.2-flash",
+            model="gemini-omni-flash-preview",
             input="exposure prompt",
             response_format={
                 "type": "video", "duration": "10s", "resolution": "720p",

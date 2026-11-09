@@ -103,6 +103,11 @@ sudo env APP_HOSTNAME=api.example.com \
 `GEMINI_API_KEY` enables [conquer page videos](#conquer-page-exposure-videos).
 The installer saves it in `/etc/therapace/backend.env` and keeps it on later
 runs, so you only need to pass it once (or when you change it).
+For an existing EC2 install, you can also set it in
+`/etc/therapace/backend.env` and restart `therapace-gunicorn` and
+`therapace-daphne`. If you use a project `.env` instead, put it in
+`backend/.env` beside `manage.py` (not in `backend/backend/`); the backend
+loads that file explicitly.
 
 For Amazon Linux 2023, the script installs Python 3.13 and uses `dnf`; it
 configures Nginx under `/etc/nginx/conf.d` and applies SELinux rules for the

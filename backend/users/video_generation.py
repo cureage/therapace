@@ -83,7 +83,8 @@ def build_exposure_prompt(fear_name, intensity, *, loops, description=""):
         lines.append(f"In the viewer's own words: {' '.join(description.split())[:500]}")
     lines += [
         f"Exposure intensity {intensity} of 5 ({label}). {direction}",
-        "Nothing bad happens: no attacks, injuries, blood, gore, screaming, jump scares or sudden "
+        "Nothing bad happens: no attacks, injuries, blood, gore, screaming, jump scares or sudden intensity 5 should be photorealisic, but the lower levels can be more stylized or cartoon-like. The video should be immersive and realistic, but not shocking or traumatizing.",
+        "The video should be calm and safe, with no sudden movements,",
         "loud noises, and nobody is in danger.",
         "The clip plays on a loop, so keep the camera steady, keep it in view the whole time and let "
         "the last moment flow naturally back into the first."
