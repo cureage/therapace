@@ -84,6 +84,10 @@ class AIVideo(models.Model):
 
 
 class EEGSession(models.Model):
+    class Status(models.TextChoices):
+        COMPLETE = "complete", "Complete"
+        PARTIAL = "partial", "Partial"
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -91,9 +95,16 @@ class EEGSession(models.Model):
     )
     # Session metadata; time-series data belongs in readings, not one growing JSON blob.
     session_data = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=8, choices=Status.choices, default=Status.COMPLETE)
+    recording_key = models.CharField(max_length=64, null=True, blank=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "recording_key"], name="user_recording_key_unique")
+        ]
         indexes = [
             models.Index(
                 fields=["user", "created_at"],
@@ -116,13 +127,15 @@ class SessionReading(models.Model):
     timestamp = models.DateTimeField(help_text="Measurement time, or frontend notification receipt time.")
     # Heart rate: {"unit": "bpm", "value": 78}; EEG: {"unit": "uV", "channels": {...}}.
     data = models.JSONField()
+    # Packet sequence disambiguates Muse packets with the same millisecond timestamp.
+    source_index = models.PositiveBigIntegerField(default=0)
     received_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["timestamp", "id"]
         indexes = [models.Index(fields=["session", "type", "timestamp"], name="session_type_time_idx")]
         constraints = [models.UniqueConstraint(
-            fields=["session", "type", "device_id", "timestamp"],
+            fields=["session", "type", "device_id", "timestamp", "source_index"],
             name="session_reading_unique",
         )]
 

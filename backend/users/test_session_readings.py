@@ -66,3 +66,45 @@ class SessionReadingTests(APITestCase):
         self.client.force_authenticate(user=None)
         self.assertEqual(self.client.get(self.url).status_code, 401)
         self.assertEqual(self.client.post(self.url, self.payload, format="json").status_code, 401)
+
+    def test_partial_recording_creation_is_retry_safe_and_does_not_add_streak(self):
+        payload = {
+            "session_data": {"fear": "Spiders"},
+            "recording_key": "partial-recording-1",
+            "status": "partial",
+            "started_at": "2026-11-08T19:30:00Z",
+            "ended_at": "2026-11-08T19:30:05Z",
+        }
+        first = self.client.post("/api/sessions/", payload, format="json")
+        retry = self.client.post("/api/sessions/", payload, format="json")
+        self.assertEqual(first.status_code, 201)
+        self.assertEqual(retry.data["id"], first.data["id"])
+        self.assertEqual(first.data["status"], "partial")
+        self.assertFalse(self.user.streak_days.exists())
+
+    def test_eeg_packets_at_same_timestamp_keep_sequence_and_samples(self):
+        timestamp = "2026-11-08T19:30:01.125Z"
+        payload = {
+            "session_id": self.session.pk,
+            "type": "eeg",
+            "device_id": "muse",
+            "data": {"unit": "uV", "sampling_rate_hz": 256, "samples": [
+                {"timestamp": timestamp, "sequence_id": 10, "channel": "TP9", "samples": [12.4, 10.1]},
+                {"timestamp": timestamp, "sequence_id": 11, "channel": "AF7", "samples": [-8.2, -7.3]},
+            ]},
+        }
+        for _ in range(2):
+            self.assertEqual(self.client.post(self.url, payload, format="json").status_code, 200)
+        results = self.client.get(self.url + "?type=eeg").data["results"]
+        self.assertEqual(len(results), 2)
+        self.assertEqual(results[0]["data"], {
+            "unit": "uV", "sampling_rate_hz": 256, "sequence_id": 10, "channel": "TP9",
+            "samples": [12.4, 10.1],
+        })
+
+    def test_samples_outside_recording_window_are_rejected(self):
+        self.session.started_at = timezone.datetime(2026, 11, 8, 19, 30, 2, tzinfo=timezone.utc)
+        self.session.ended_at = timezone.datetime(2026, 11, 8, 19, 30, 5, tzinfo=timezone.utc)
+        self.session.save()
+        self.assertEqual(self.client.post(self.url, self.payload, format="json").status_code, 400)
+        self.assertFalse(self.session.readings.exists())

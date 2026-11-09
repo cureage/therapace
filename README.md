@@ -88,26 +88,23 @@ DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,172.28.50.1 \
 Only expose a development server on a trusted network.
 
 Bloom signs in at `/api/auth/login/` and keeps the returned DRF token in
-in-memory app state. While an authenticated Muse device is connected, the app
-uses the native LibMuse SDK to discover the headband, connect with its `p21`
-four-channel EEG preset, and receive the TP9, AF7, AF8, and TP10 samples in
-microvolts at 256 Hz. The app batches samples and posts them to `/api/sensors/`
-every five seconds. The payload includes `sensor_values.eeg` with its sample
-rate, units, channel names, packet sequence IDs, timestamps, and sample arrays;
-available Bluetooth RSSI is included as `sensor_values.rssi_dbm`.
+in-memory app state. Bloom uses the native LibMuse SDK to discover the headband,
+connect with its `p21` four-channel EEG preset, and receive TP9, AF7, AF8, and TP10
+samples in microvolts at 256 Hz. During video playback, Bloom records Muse EEG
+packets and Fitbit heart-rate notifications. It saves the recording at natural
+completion or cancellation through the [session API](backend/SESSION_API.md).
 
 Settings displays the latest reading from each EEG channel and offers a JSON
 preview of the sensor payload. Sample payload previews are printed to the Xcode
-device console even when the app is not authenticated. Authenticated payloads
-are also logged in the Django console by the existing `sensor_stream` logger.
+device console even when the app is not authenticated.
 
 ### Fitbit Air live heart rate
 
 Settings now has a Fitbit / Bluetooth heart-rate sensor section below the Muse
 controls. It subscribes directly to the standard Bluetooth Heart Rate Service
 (`180D`), Heart Rate Measurement (`2A37`), and displays BPM as notifications arrive.
-It does not use Fitbit account APIs or require a Django login. Heart-rate readings
-are displayed locally; they are not uploaded to Django. Muse and Fitbit can stay
+The live Settings display uses Bluetooth directly. Bloom uploads readings
+captured during signed-in video sessions. Muse and Fitbit can stay
 connected together, but only one scan or connection operation runs at a time on
 the Settings page. Connections remain active when leaving the page; use Disconnect
 to stop the heart-rate subscription. Streaming is intended for foreground use.

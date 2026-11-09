@@ -6,10 +6,13 @@ import { Button, ButtonText } from '@/components/ui/button';
 import { Heading } from '@/components/ui/heading';
 import { Input, InputField } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { useAppDispatch } from '@/store/hooks';
+import { setFears as storeFears } from '@/store/slices/userSlice';
 import { MAX_FEARS } from '@/utils/constants';
 
 export const Fears = () => {
   const navigation = useNavigation();
+  const dispatch = useAppDispatch();
   const [fear, setFear] = useState('');
   const [fears, setFears] = useState<string[]>([]);
   const addFear = () => {
@@ -90,7 +93,10 @@ export const Fears = () => {
       <Button
         size="lg"
         isDisabled={!fears.length}
-        onPress={() => navigation.navigate('Thanks' as never)}>
+        onPress={() => {
+          dispatch(storeFears(fears));
+          navigation.navigate('Thanks' as never);
+        }}>
         <ButtonText className="text-white">Continue</ButtonText>
       </Button>
     </StyledView>

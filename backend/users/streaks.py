@@ -19,12 +19,21 @@ def current_streak(user, *, as_of=None):
 
 
 @transaction.atomic
-def complete_eeg_session(*, user, session_data):
+def complete_eeg_session(*, user, session_data, status=EEGSession.Status.COMPLETE,
+                         recording_key=None, started_at=None, ended_at=None):
     user = User.objects.select_for_update().get(pk=user.pk)
-    session = EEGSession.objects.create(
-        user=user,
-        session_data=session_data,
-    )
+    fields = dict(session_data=session_data, status=status, started_at=started_at, ended_at=ended_at)
+    if recording_key is None:
+        session = EEGSession.objects.create(user=user, **fields)
+    else:
+        session, created = EEGSession.objects.get_or_create(
+            user=user, recording_key=recording_key, defaults=fields,
+        )
+        if not created:
+            return session, user
+
+    if status == EEGSession.Status.PARTIAL:
+        return session, user
     activity_date = session.created_at.astimezone(datetime_timezone.utc).date()
     _, day_created = StreakDay.objects.get_or_create(
         user=user,

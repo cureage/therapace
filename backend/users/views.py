@@ -135,12 +135,15 @@ class EEGSessionView(APIView):
         serializer.is_valid(raise_exception=True)
         session, user = complete_eeg_session(
             user=request.user,
-            session_data=serializer.validated_data["session_data"],
+            **serializer.validated_data,
         )
         return Response(
             {
                 "id": session.pk,
                 "created_at": session.created_at,
+                "status": session.status,
+                "started_at": session.started_at,
+                "ended_at": session.ended_at,
                 "user": UserSerializer(user).data,
             },
             status=status.HTTP_201_CREATED,

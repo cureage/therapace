@@ -22,7 +22,22 @@ All requests require `Authorization: Token YOUR_TOKEN`.
 ```
 
 Use the returned `id` as `session_id` (an integer, not a UUID). The existing endpoint
-also records daily streak activity; uploading readings does not change streaks.
+records daily streak activity for completed sessions. Bloom sends
+`recording_key`, `started_at`, `ended_at`, and `status` alongside `session_data`:
+
+```json
+{
+  "recording_key": "1794166200000-example",
+  "status": "partial",
+  "started_at": "2026-11-08T19:30:00.000Z",
+  "ended_at": "2026-11-08T19:30:05.000Z",
+  "session_data": { "fear": "Spiders" }
+}
+```
+
+Bloom uses `complete` when playback reaches the end and `partial` when the user
+cancels. Partial sessions do not award streak credit. Reusing a recording key
+returns the existing session for that user so the app can safely retry uploads.
 
 ## Append heart-rate readings
 
@@ -77,6 +92,35 @@ an invalid sample rejects the whole batch. Retrying the same session/type/device
 timestamp does not duplicate a sample or overwrite its first accepted value.
 `accepted_samples` in the response includes already-saved samples from retries.
 
+Bloom's Muse bridge sends per-channel packets. The app saves the packet arrays
+directly using the same endpoint:
+
+```json
+{
+  "session_id": 42,
+  "type": "eeg",
+  "device_id": "muse-device-id",
+  "data": {
+    "unit": "uV",
+    "sampling_rate_hz": 256,
+    "samples": [
+      {
+        "timestamp": "2026-11-08T19:30:01.125Z",
+        "sequence_id": 12,
+        "channel": "TP9",
+        "samples": [12.4, 11.9, 12.1]
+      }
+    ]
+  }
+}
+```
+
+Each packet becomes one reading with its timestamp in a database column and its
+unit, sampling rate, sequence, channel, and sample values in JSON. Packet sequence
+distinguishes packets received in the same millisecond. For plotting, use the
+packet receipt timestamp as an approximate time anchor and the sample interval
+of 1/256 second for spacing within the packet.
+
 ## Read graph data
 
 `GET /api/sessions/42/readings/?type=heart_rate&limit=1000&offset=0`
@@ -85,10 +129,10 @@ Returns `count`, `next`, `previous`, and timestamp-ordered `results`. Follow `ne
 for additional pages. Use `type=eeg` for EEG, or omit `type` to retrieve both.
 Other users cannot read or append to this session.
 
-The legacy `/api/sensors/` endpoint is unchanged and still handles its existing
-single-sample diagnostic payload. The mobile app still needs to call the session
-endpoints to persist its readings; this backend change does not wire uploads into
-the Bluetooth UI automatically.
+Bloom records from the first playback event to natural completion or cancellation.
+It submits heart-rate and EEG batches from whichever sensors reported readings.
+The app buffers the recording in memory and keeps it on the session screen for
+retry if an upload fails.
 
 Apply the migration before running:
 

@@ -31,6 +31,18 @@ class EEGSampleSerializer(serializers.Serializer):
         return channels
 
 
+class EEGPacketSerializer(serializers.Serializer):
+    timestamp = serializers.DateTimeField()
+    sequence_id = serializers.IntegerField(min_value=0, max_value=2147483646)
+    channel = serializers.ChoiceField(choices=["TP9", "AF7", "AF8", "TP10"])
+    samples = serializers.ListField(child=serializers.FloatField(), min_length=1, max_length=1024)
+
+    def validate_samples(self, samples):
+        if any(not math.isfinite(value) for value in samples):
+            raise serializers.ValidationError("Samples must be finite numbers.")
+        return samples
+
+
 class SessionBatchSerializer(serializers.Serializer):
     session_id = serializers.IntegerField(min_value=1)
     type = serializers.ChoiceField(choices=SessionReading.Type.choices)
@@ -45,11 +57,18 @@ class SessionBatchSerializer(serializers.Serializer):
         samples = data.get("samples")
         if not isinstance(samples, list) or not 1 <= len(samples) <= 1000:
             raise serializers.ValidationError({"data": {"samples": "Provide 1 to 1000 timestamped samples."}})
-        sample_class = HeartRateSampleSerializer if expected_unit == "bpm" else EEGSampleSerializer
+        if "sampling_rate_hz" in data:
+            if expected_unit != "uV" or data["sampling_rate_hz"] != 256:
+                raise serializers.ValidationError({"data": {"sampling_rate_hz": "Muse EEG packets require 256 Hz."}})
+            sample_class = EEGPacketSerializer
+        else:
+            sample_class = HeartRateSampleSerializer if expected_unit == "bpm" else EEGSampleSerializer
         serializer = sample_class(data=samples, many=True)
         if not serializer.is_valid():
             raise serializers.ValidationError({"data": {"samples": serializer.errors}})
         attrs["data"] = {"unit": expected_unit, "samples": serializer.validated_data}
+        if sample_class is EEGPacketSerializer:
+            attrs["data"]["sampling_rate_hz"] = 256
         return attrs
 
 
@@ -79,12 +98,18 @@ class SessionReadingsView(APIView):
         if batch["session_id"] != session.pk:
             raise serializers.ValidationError({"session_id": "Must match the session in the URL."})
         samples = batch["data"]["samples"]
+        if session.started_at is not None and any(
+            not session.started_at <= sample["timestamp"] <= session.ended_at for sample in samples
+        ):
+            raise serializers.ValidationError({"data": {"samples": "Samples must fall within the session window."}})
+        measurement_metadata = {key: value for key, value in batch["data"].items() if key != "samples"}
         readings = [SessionReading(
             session=session,
             type=batch["type"],
             device_id=batch["device_id"],
             timestamp=sample["timestamp"],
-            data={"unit": batch["data"]["unit"], **{
+            source_index=sample.get("sequence_id", -1) + 1,
+            data={**measurement_metadata, **{
                 key: value for key, value in sample.items() if key != "timestamp"
             }},
         ) for sample in samples]
@@ -94,7 +119,7 @@ class SessionReadingsView(APIView):
         return Response({
             "session_id": session.pk,
             "accepted_samples": len(samples),
-            "detail": "Samples saved; previously received timestamps are retained unchanged.",
+            "detail": "Samples accepted. Retried readings are counted once in the session.",
         }, status=status.HTTP_200_OK)
 
     def get(self, request, pk):

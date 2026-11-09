@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyledView } from './StyledView';
 import { Card } from './ui/card';
 import { Button, ButtonText } from './ui/button';
-import { Image, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
 import { Heading } from './ui/heading';
 import {
   FormControl,
@@ -14,55 +14,34 @@ import {
 import { Input, InputField } from '@/components/ui/input';
 import { BackButton } from '@/components/BackButton';
 import { endpoints, EMAIL_REGEX } from '@/utils/constants';
-import { useNavigation } from '@react-navigation/native';
+import { authenticate } from '@/services/AuthService';
 import { setUser } from '@/store/slices/userSlice';
 import { useAppDispatch } from '@/store/hooks';
 
 export const Login = () => {
   const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [errors, setErrors] = useState({});
-  const navigation = useNavigation();
+  const [errors, setErrors] = useState({ email: '', password: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const dispatch = useAppDispatch();
 
-  const handleSubmit = () => {
-    let hasError = false;
-    // if (!EMAIL_REGEX.test(loginData.email)) {
-    //   setErrors({ ...errors, email: 'Please enter a valid email address.' });
-    //   hasError = true;
-    // }
-    // if (loginData.password.length == 0) {
-    //   setErrors({ ...errors, password: 'Please enter your password.' });
-    //   hasError = true;
-    // }
-    // if (loginData.email.length == 0) {
-    //   setErrors({ ...errors, email: 'Please enter your email address.' });
-    //   hasError = true;
-    // }
-
-    if (!hasError) {
-      setErrors({ ...errors, email: '', password: '' });
-      // fetch(endpoints.login, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(loginData),
-      // })
-      //   .then((res) => res.json())
-      //   .then((data) => {
-      //     // Handle successful login, e.g., navigate to another screen or store token
-      //   });
-      const placeholderData = {
-        id: '1',
-        email: 'tammy@test.com',
-        name: 'Tammy Young',
-        isOnboarding: false,
-        streak: 0,
-        maxStreak: 10,
-        fears: ['Spiders', 'Clowns']
-      };
-      dispatch(setUser(placeholderData));
-      navigation.navigate('Landing' as never);
+  const handleSubmit = async () => {
+    const email = loginData.email.trim();
+    const errors = {
+      email: EMAIL_REGEX.test(email) ? '' : 'Please enter a valid email address.',
+      password: loginData.password ? '' : 'Please enter your password.',
+    };
+    setErrors(errors);
+    if (errors.email || errors.password || submitting) return;
+    const credentials = { email, password: loginData.password };
+    setSubmitting(true);
+    setSubmitError('');
+    try {
+      dispatch(setUser(await authenticate(endpoints.login, credentials, false)));
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Could not connect to the server.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -112,7 +91,8 @@ export const Login = () => {
               <FormControlErrorText className="text-left">{errors.password}</FormControlErrorText>
             </FormControlError>
           </FormControl>
-          <Button size="lg" onPress={handleSubmit}>
+          {submitError && <Text accessibilityRole="alert">{submitError}</Text>}
+          <Button size="lg" isDisabled={submitting} onPress={() => void handleSubmit()}>
             <ButtonText className="text-white">Login</ButtonText>
           </Button>
         </Card>
