@@ -16,9 +16,9 @@ export function MainNavigator() {
       }}
       tabBar={(props) => <NavBar {...props} />}>
       <MainTabs.Screen name="Home" component={Home} />
-      <MainTabs.Screen name="Profile" component={Profile} />
-      <MainTabs.Screen name="Conquer" component={Conquer} />
       <MainTabs.Screen name="Leaderboard" component={Leaderboard} />
+      <MainTabs.Screen name="Conquer" component={Conquer} />
+      <MainTabs.Screen name="Profile" component={Profile} />
       <MainTabs.Screen name="Settings" component={Settings} />
     </MainTabs.Navigator>
   );

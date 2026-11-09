@@ -12,6 +12,8 @@ import { museBluetoothService, type MuseDevice } from '@/services/MuseBluetoothS
 import { reportSensorPayload } from '@/services/SensorReportingService';
 import { buildMuseEEGPayload, type MuseEEGReading } from '@/services/MuseEEGMeasurement';
 import { OnboardingNavigator } from '@/navigators/OnboardingNavigator';
+import { ConquerNavigator } from './navigators/ConquerNavigator';
+
 
 const navTheme = {
   ...DefaultTheme,
@@ -23,6 +25,7 @@ const navTheme = {
 
 function AppContent() {
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
+  const isConquering = useAppSelector((state) => state.user.isConquering);
   const authToken = useAppSelector((state) => state.user.authToken);
   const [connectedDevice, setConnectedDevice] = useState<MuseDevice | null>(null);
 
@@ -85,7 +88,11 @@ function AppContent() {
       <GluestackUIProvider>
         <NavigationContainer theme={navTheme}>
           {isAuthenticated ? (
-            <MainNavigator />
+            isConquering ? (
+              <ConquerNavigator />
+            ) : (
+              <MainNavigator />
+            )
           ) : isOnboarding ? (
             <OnboardingNavigator />
           ) : (
