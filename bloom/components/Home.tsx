@@ -73,7 +73,7 @@ export const Home = () => {
         {user?.name ? `Hi, ${user.name} 👋` : `Welcome back 👋`}
       </Heading>
       <View className="flex items-center justify-center gap-4 pb-4">
-        <ProfilePicture name={user?.name} className="!h-36 !w-36" />
+        <ProfilePicture name={user?.name} size={125} />
         <Text className="text-sm font-medium text-neutral-500 uppercase">Your Current Journey</Text>
       </View>
       <View className="flex flex-row justify-between">
