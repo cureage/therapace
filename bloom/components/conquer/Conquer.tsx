@@ -81,6 +81,8 @@ export const Conquer = () => {
           StackActions.replace('Complete', {
             cancelled: recording.metadata.status === 'partial',
             analysis,
+            // Lets the user repeat the session with this video instead of generating a new one.
+            video,
           })
         );
       } catch (uploadError) {
@@ -92,7 +94,7 @@ export const Conquer = () => {
         setIsSaving(false);
       }
     },
-    [dispatch, navigation, token]
+    [dispatch, navigation, token, video]
   );
 
   const finish = useCallback(
