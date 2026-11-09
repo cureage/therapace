@@ -1,0 +1,5 @@
+framework module Muse {
+  umbrella header "../Headers/Muse.h"
+  export *
+  module * { export * }
+}

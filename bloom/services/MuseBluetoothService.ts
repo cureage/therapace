@@ -1,40 +1,156 @@
-import { BleManager, type BleError, type Device, type Subscription } from 'react-native-ble-plx';
+import { requireOptionalNativeModule } from 'expo-modules-core';
 import { PermissionsAndroid, Platform } from 'react-native';
-import { getBluetoothManager } from './BluetoothManager';
+import { MUSE_EEG_CHANNELS, type MuseEEGEvent } from './MuseEEGMeasurement';
 
-const MUSE_NAME_PREFIX = 'muse';
 const SCAN_DURATION_MS = 10_000;
-const CONNECT_TIMEOUT_MS = 15_000;
+const CONNECT_TIMEOUT_MS = 20_000;
+const EEG_TIMEOUT_MS = 10_000;
 
-type DeviceListener = (device: Device | null) => void;
+export type MuseDevice = {
+  id: string;
+  name: string;
+  localName: string;
+  rssi: number | null;
+};
+
+type DeviceListener = (device: MuseDevice | null) => void;
+type EEGListener = (event: MuseEEGEvent) => void;
 type ScanCallbacks = {
-  onDevice: (device: Device) => void;
+  onDevice: (device: MuseDevice) => void;
   onComplete: () => void;
   onError: (error: Error) => void;
 };
 
+type ConnectionEvent = MuseDevice & {
+  state: 'connecting' | 'connected' | 'disconnected' | 'needsLicense' | 'needsUpdate' | 'unknown';
+};
+
+type EEGPacketEvent = {
+  timestamp: number;
+  values: number[][];
+};
+
+type NativeMuseEvents = {
+  onMuseDevice: (device: MuseDevice) => void;
+  onMuseConnection: (event: ConnectionEvent) => void;
+  onMuseEEG: (event: EEGPacketEvent) => void;
+  onMuseError: (event: { message: string }) => void;
+};
+
+type NativeMuseModule = {
+  addListener<EventName extends keyof NativeMuseEvents>(
+    eventName: EventName,
+    listener: NativeMuseEvents[EventName]
+  ): { remove(): void };
+  startScan(): Promise<void>;
+  stopScan(): Promise<void>;
+  connect(deviceId: string): Promise<void>;
+  disconnect(): Promise<void>;
+  getSignalStrength(deviceId: string): Promise<number | null>;
+};
+
+type PendingConnection = {
+  resolve: (device: MuseDevice) => void;
+  reject: (error: Error) => void;
+  timeout: ReturnType<typeof setTimeout>;
+};
+
 class MuseBluetoothService {
-  private manager: BleManager | null = null;
-  private connectedDevice: Device | null = null;
-  private disconnectSubscription: Subscription | null = null;
+  private readonly nativeModule = requireOptionalNativeModule<NativeMuseModule>('BloomMuse');
+  private connectedDevice: MuseDevice | null = null;
+  private readonly devices = new Map<string, MuseDevice>();
+  private readonly deviceListeners = new Set<DeviceListener>();
+  private readonly eegListeners = new Set<EEGListener>();
+  private readonly pendingConnections = new Map<string, PendingConnection>();
   private scanTimeout: ReturnType<typeof setTimeout> | null = null;
   private scanActive = false;
   private scanGeneration = 0;
-  private readonly deviceListeners = new Set<DeviceListener>();
+  private scanCallbacks: ScanCallbacks | null = null;
+  private eegTimeout: ReturnType<typeof setTimeout> | null = null;
+  private sequenceId = 0;
 
-  private getManager(): BleManager {
-    if (Platform.OS === 'web') {
-      throw new Error('Muse BLE is available only in a native iOS or Android build.');
+  constructor() {
+    this.nativeModule?.addListener('onMuseDevice', (device) => {
+      const normalized = { ...device, localName: device.name };
+      this.devices.set(normalized.id, normalized);
+      this.scanCallbacks?.onDevice(normalized);
+    });
+
+    this.nativeModule?.addListener('onMuseConnection', (event) => {
+      const device = { ...event, localName: event.name };
+      if (event.state === 'connected') {
+        this.setConnectedDevice(device);
+        const pending = this.pendingConnections.get(device.id);
+        if (pending) {
+          clearTimeout(pending.timeout);
+          this.pendingConnections.delete(device.id);
+          pending.resolve(device);
+        }
+        this.watchForEEG();
+      } else if (event.state === 'disconnected') {
+        if (this.connectedDevice?.id === device.id) {
+          this.setConnectedDevice(null);
+          this.clearEEGTimeout();
+          this.emitEEGEvent({ error: 'The Muse disconnected.' });
+        }
+        this.rejectPendingConnection(
+          device.id,
+          new Error('The Muse disconnected before connecting.')
+        );
+      } else if (event.state === 'needsLicense' || event.state === 'needsUpdate') {
+        const message =
+          event.state === 'needsLicense'
+            ? 'The Muse SDK reports that this headband needs a valid license.'
+            : 'The Muse SDK reports that this headband needs a firmware update.';
+        this.rejectPendingConnection(device.id, new Error(message));
+        this.emitEEGEvent({ error: message });
+      }
+    });
+
+    this.nativeModule?.addListener('onMuseEEG', ({ timestamp, values }) => {
+      this.clearEEGTimeout();
+      values.forEach((samples, index) => {
+        const channel = MUSE_EEG_CHANNELS[index];
+        if (!channel || samples.length === 0) return;
+        this.emitEEGEvent({
+          reading: {
+            channel,
+            sequenceId: this.sequenceId++,
+            samples,
+            receivedAt: timestamp,
+          },
+        });
+      });
+    });
+
+    this.nativeModule?.addListener('onMuseError', ({ message }) => {
+      const error = new Error(message);
+      this.scanCallbacks?.onError(error);
+      this.scanCallbacks = null;
+      void this.stopScan().catch((scanError: unknown) => {
+        console.warn('Could not stop the Muse scan after an SDK error.', scanError);
+      });
+      this.emitEEGEvent({ error: message });
+      this.pendingConnections.forEach((pending, id) => {
+        this.rejectPendingConnection(id, error);
+      });
+    });
+  }
+
+  private getNativeModule(): NativeMuseModule {
+    if (!this.nativeModule) {
+      throw new Error('Muse SDK is available only in a native iOS or Android build.');
     }
-
-    this.manager ??= getBluetoothManager();
-    return this.manager;
+    if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
+      throw new Error('Muse SDK is supported only on iOS and Android.');
+    }
+    return this.nativeModule;
   }
 
   private async requestPermissions(): Promise<void> {
     if (Platform.OS !== 'android') {
       if (Platform.OS !== 'ios') {
-        throw new Error('Muse BLE is supported only on iOS and Android.');
+        throw new Error('Muse SDK is supported only on iOS and Android.');
       }
       return;
     }
@@ -58,48 +174,20 @@ class MuseBluetoothService {
     }
   }
 
-  private isMuse(device: Device): boolean {
-    // Muse 2 advertises a name such as "Muse-XXXX". Scan without a service UUID
-    // filter because the advertised GATT UUIDs are not consistent across models.
-    const advertisedName = device.name ?? device.localName;
-    return advertisedName?.toLowerCase().startsWith(MUSE_NAME_PREFIX) ?? false;
-  }
-
   async startScan(callbacks: ScanCallbacks): Promise<void> {
     await this.stopScan();
     const scanGeneration = this.scanGeneration;
     await this.requestPermissions();
-    if (scanGeneration !== this.scanGeneration) {
-      return;
-    }
+    if (scanGeneration !== this.scanGeneration) return;
 
-    const manager = this.getManager();
     this.scanActive = true;
+    this.scanCallbacks = callbacks;
     this.scanTimeout = setTimeout(() => {
       void this.stopScan().then(callbacks.onComplete).catch(callbacks.onError);
     }, SCAN_DURATION_MS);
 
-    let scanFailed = false;
     try {
-      await manager.startDeviceScan(null, { allowDuplicates: false }, (error, device) => {
-        if (scanGeneration !== this.scanGeneration) {
-          return;
-        }
-
-        if (error) {
-          if (!scanFailed) {
-            scanFailed = true;
-            void this.stopScan()
-              .then(() => callbacks.onError(error))
-              .catch(callbacks.onError);
-          }
-          return;
-        }
-
-        if (device && this.isMuse(device)) {
-          callbacks.onDevice(device);
-        }
-      });
+      await this.getNativeModule().startScan();
     } catch (error) {
       await this.stopScan();
       throw error;
@@ -112,66 +200,55 @@ class MuseBluetoothService {
       clearTimeout(this.scanTimeout);
       this.scanTimeout = null;
     }
+    this.scanCallbacks = null;
 
-    if (this.scanActive && this.manager) {
+    if (this.scanActive) {
       this.scanActive = false;
-      await this.manager.stopDeviceScan();
+      await this.getNativeModule().stopScan();
     }
   }
 
-  async connect(deviceId: string): Promise<Device> {
+  async connect(deviceId: string): Promise<MuseDevice> {
     await this.stopScan();
     await this.requestPermissions();
 
-    if (this.connectedDevice?.id === deviceId) {
-      return this.connectedDevice;
-    }
-    if (this.connectedDevice) {
-      await this.disconnect();
+    if (this.connectedDevice?.id === deviceId) return this.connectedDevice;
+    if (this.connectedDevice) await this.disconnect();
+
+    const device = this.devices.get(deviceId);
+    if (!device) {
+      throw new Error('The selected Muse is no longer available. Scan again.');
     }
 
-    const manager = this.getManager();
-    let timeout: ReturnType<typeof setTimeout> | undefined;
+    const connected = new Promise<MuseDevice>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        this.pendingConnections.delete(deviceId);
+        void this.nativeModule?.disconnect().catch((error: unknown) => {
+          console.warn('Could not stop the timed-out Muse connection.', error);
+        });
+        reject(new Error('The Muse did not connect. Check that it is powered on and try again.'));
+      }, CONNECT_TIMEOUT_MS);
+      this.pendingConnections.set(deviceId, { resolve, reject, timeout });
+    });
+
     try {
-      const device = await Promise.race([
-        manager.connectToDevice(deviceId, { timeout: CONNECT_TIMEOUT_MS }),
-        new Promise<never>((_, reject) => {
-          timeout = setTimeout(
-            () => reject(new Error('Connecting to the Muse timed out.')),
-            CONNECT_TIMEOUT_MS
-          );
-        }),
-      ]);
-      const discoveredDevice = await device.discoverAllServicesAndCharacteristics();
-      this.setConnectedDevice(discoveredDevice);
-      return discoveredDevice;
+      await this.getNativeModule().connect(deviceId);
     } catch (error) {
-      try {
-        await manager.cancelDeviceConnection(deviceId);
-      } catch (cleanupError) {
-        console.warn('Could not cancel the pending Muse connection.', cleanupError);
-      }
-      throw error;
-    } finally {
-      if (timeout) {
-        clearTimeout(timeout);
-      }
+      this.rejectPendingConnection(
+        deviceId,
+        error instanceof Error ? error : new Error('Could not start the Muse connection.')
+      );
     }
+    return connected;
   }
 
   async disconnect(): Promise<void> {
-    const device = this.connectedDevice;
-    if (!device) {
-      return;
-    }
-
-    await this.getManager().cancelDeviceConnection(device.id);
-    this.setConnectedDevice(null);
+    this.clearEEGTimeout();
+    await this.getNativeModule().disconnect();
   }
 
-  async readSignalStrength(device: Device): Promise<number | null> {
-    const updatedDevice = await device.readRSSI();
-    return updatedDevice.rssi;
+  async readSignalStrength(device: MuseDevice): Promise<number | null> {
+    return this.getNativeModule().getSignalStrength(device.id);
   }
 
   subscribeToConnection(listener: DeviceListener): () => void {
@@ -182,24 +259,45 @@ class MuseBluetoothService {
     };
   }
 
-  private setConnectedDevice(device: Device | null): void {
-    this.disconnectSubscription?.remove();
-    this.disconnectSubscription = null;
+  subscribeToEEG(listener: EEGListener): () => void {
+    this.eegListeners.add(listener);
+    return () => {
+      this.eegListeners.delete(listener);
+    };
+  }
+
+  private setConnectedDevice(device: MuseDevice | null): void {
     this.connectedDevice = device;
-
-    if (device) {
-      this.disconnectSubscription = this.getManager().onDeviceDisconnected(
-        device.id,
-        (error: BleError | null) => {
-          if (error) {
-            console.warn('Muse disconnected unexpectedly.', error);
-          }
-          this.setConnectedDevice(null);
-        }
-      );
-    }
-
     this.deviceListeners.forEach((listener) => listener(device));
+  }
+
+  private emitEEGEvent(event: MuseEEGEvent): void {
+    this.eegListeners.forEach((listener) => listener(event));
+  }
+
+  private watchForEEG(): void {
+    this.clearEEGTimeout();
+    this.eegTimeout = setTimeout(() => {
+      this.emitEEGEvent({
+        error:
+          'Connected to the Muse, but no EEG data arrived. Check the headband fit and sensors.',
+      });
+    }, EEG_TIMEOUT_MS);
+  }
+
+  private clearEEGTimeout(): void {
+    if (this.eegTimeout) {
+      clearTimeout(this.eegTimeout);
+      this.eegTimeout = null;
+    }
+  }
+
+  private rejectPendingConnection(id: string, error: Error): void {
+    const pending = this.pendingConnections.get(id);
+    if (!pending) return;
+    clearTimeout(pending.timeout);
+    this.pendingConnections.delete(id);
+    pending.reject(error);
   }
 }
 
