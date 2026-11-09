@@ -45,11 +45,23 @@ const TopLeader = ({
   );
 };
 
-const LeaderRow = ({ user, index }: { user: LeaderboardEntry; index: number }) => {
+const LeaderRow = ({
+  user,
+  index,
+  myUserId,
+}: {
+  user: LeaderboardEntry;
+  index: number;
+  myUserId?: string;
+}) => {
+  const isCurrentUser = user.id === myUserId;
   return (
-    <TableRow className={`flex flex-row gap-4`}>
+    <TableRow className={`flex flex-row gap-4 ${isCurrentUser ? 'bg-primary/10 rounded-lg' : ''}`}>
       <TableData className="flex-[2] text-sm">#{index + 1}</TableData>
-      <TableData className="flex-[4] text-sm">{user.name}</TableData>
+      <TableData className={`flex-[4] text-sm ${isCurrentUser ? 'text-primary font-bold' : ''}`}>
+        {user.name}
+        {isCurrentUser ? ' (You)' : ''}
+      </TableData>
       <TableData className="flex-[2] flex-row items-center">
         <Icon as={Shield} size="xs" className="translate-y-[1px]" />
         <Text className="text-sm">{user?.conquered}</Text>
@@ -125,6 +137,7 @@ export const Leaderboard = () => {
                   key={item.id}
                   user={item}
                   index={index + (entries.length >= 3 ? 3 : 0)}
+                  myUserId={userId}
                 />
               ))}
             </TableBody>
