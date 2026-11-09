@@ -103,7 +103,7 @@ INFERENCE = {
 # (POST /api/videos/ returns 503) until GEMINI_API_KEY is set.
 GEMINI_VIDEO = {
     "API_KEY": os.environ.get("GEMINI_API_KEY", ""),
-    "MODEL": os.environ.get("GEMINI_VIDEO_MODEL", "gemini-omni-1.2-flash"),
+    "MODEL": os.environ.get("GEMINI_VIDEO_MODEL", "gemini-omni-flash-preview"),
     "RESOLUTION": os.environ.get("GEMINI_VIDEO_RESOLUTION", "720p"),
     # Portrait fills the phone screen during a session.
     "ASPECT_RATIO": os.environ.get("GEMINI_VIDEO_ASPECT_RATIO", "9:16"),
