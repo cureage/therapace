@@ -144,8 +144,10 @@ DJANGO_SECURE_SSL_REDIRECT=$secure_redirect
 DJANGO_SESSION_COOKIE_SECURE=$secure_redirect
 DJANGO_CSRF_COOKIE_SECURE=$secure_redirect
 SENSOR_STREAM_LOG_LEVEL=WARNING
-GEMINI_API_KEY=$gemini_api_key
 EOF
+if [ -n "$gemini_api_key" ]; then
+  printf 'GEMINI_API_KEY=%s\n' "$gemini_api_key" >> "$tmp_env_file"
+fi
 chmod 0640 "$tmp_env_file"
 chown root:"$APP_GROUP" "$tmp_env_file"
 mv "$tmp_env_file" "$ENV_FILE"

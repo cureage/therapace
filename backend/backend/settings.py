@@ -12,13 +12,18 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
-from dotenv import load_dotenv 
+from dotenv import dotenv_values, load_dotenv
 
 from django.core.exceptions import ImproperlyConfigured
 
-load_dotenv()  # Load environment variables from .env file
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+DOTENV_FILE = BASE_DIR / ".env"
+load_dotenv(DOTENV_FILE)
+
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+if not GEMINI_API_KEY:
+    GEMINI_API_KEY = dotenv_values(DOTENV_FILE).get("GEMINI_API_KEY") or ""
 
 
 # Quick-start development settings - unsuitable for production
@@ -102,7 +107,7 @@ INFERENCE = {
 # Exposure videos for the conquer page (users/video_generation.py). Generation is disabled
 # (POST /api/videos/ returns 503) until GEMINI_API_KEY is set.
 GEMINI_VIDEO = {
-    "API_KEY": os.environ.get("GEMINI_API_KEY", ""),
+    "API_KEY": GEMINI_API_KEY,
     "MODEL": os.environ.get("GEMINI_VIDEO_MODEL", "gemini-omni-flash-preview"),
     "RESOLUTION": os.environ.get("GEMINI_VIDEO_RESOLUTION", "720p"),
     # Portrait fills the phone screen during a session.

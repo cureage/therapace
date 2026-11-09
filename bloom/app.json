@@ -30,7 +30,8 @@
           "bluetoothAlwaysPermission": "Bloom uses Bluetooth to connect to your Muse headband and Fitbit heart-rate sensor and display live readings."
         }
       ],
-      "expo-video"
+      "expo-video",
+      "expo-secure-store"
     ],
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
