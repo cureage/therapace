@@ -13,6 +13,7 @@ import { museBluetoothService } from '@/services/MuseBluetoothService';
 import { reportSensorPayload } from '@/services/SensorReportingService';
 import { OnboardingNavigator } from '@/navigators/OnboardingNavigator';
 import { ConquerNavigator } from './navigators/ConquerNavigator';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const navTheme = {
   ...DefaultTheme,
@@ -21,6 +22,8 @@ const navTheme = {
     background: 'transparent',
   },
 };
+
+const queryClient = new QueryClient();
 
 function AppContent() {
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
@@ -74,19 +77,21 @@ function AppContent() {
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <GluestackUIProvider>
-        <NavigationContainer theme={navTheme}>
-          {isAuthenticated ? (
-            isConquering ? (
-              <ConquerNavigator />
+        <QueryClientProvider client={queryClient}>
+          <NavigationContainer theme={navTheme}>
+            {isAuthenticated ? (
+              isConquering ? (
+                <ConquerNavigator />
+              ) : (
+                <MainNavigator />
+              )
+            ) : isOnboarding ? (
+              <OnboardingNavigator />
             ) : (
-              <MainNavigator />
-            )
-          ) : isOnboarding ? (
-            <OnboardingNavigator />
-          ) : (
-            <AuthNavigator />
-          )}
-        </NavigationContainer>
+              <AuthNavigator />
+            )}
+          </NavigationContainer>
+        </QueryClientProvider>
       </GluestackUIProvider>
     </SafeAreaProvider>
   );

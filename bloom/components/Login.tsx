@@ -53,13 +53,13 @@ export const Login = () => {
       //     // Handle successful login, e.g., navigate to another screen or store token
       //   });
       const placeholderData = {
-        id: '1',
+        id: '2',
         email: 'tammy@test.com',
         name: 'Tammy Young',
         isOnboarding: false,
         streak: 0,
         maxStreak: 10,
-        fears: ['Spiders', 'Clowns']
+        fears: ['Spiders', 'Clowns'],
       };
       dispatch(setUser(placeholderData));
       navigation.navigate('Landing' as never);

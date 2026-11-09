@@ -8,7 +8,7 @@ type User = {
   streak: number;
   maxStreak: number;
   fears: any,
-  isConquering: boolean;
+  isConquering?: boolean;
   conqueringFear?: string;
 };
 
