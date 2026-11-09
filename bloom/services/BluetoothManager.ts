@@ -25,7 +25,7 @@ export async function prepareBluetooth(): Promise<BleManager> {
     if (
       permissions.some((permission) => results[permission] !== PermissionsAndroid.RESULTS.GRANTED)
     ) {
-      throw new Error('Allow Bluetooth permissions in Settings to connect your Fitbit.');
+      throw new Error('Allow Bluetooth permissions in Settings to connect a heart-rate monitor.');
     }
   }
   const ble = getBluetoothManager();

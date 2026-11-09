@@ -1,7 +1,7 @@
 import { Heading } from '@/components/ui/heading';
 import { StyledView } from '@/components/StyledView';
 import { museBluetoothService } from '@/services/MuseBluetoothService';
-import { FitbitConnection } from '@/components/FitbitConnection';
+import { HeartRateConnection } from '@/components/HeartRateConnection';
 import { MuseEEGMonitor } from '@/components/MuseEEGMonitor';
 import type { MuseDevice } from '@/services/MuseBluetoothService';
 import { useCallback, useEffect, useState } from 'react';
@@ -22,7 +22,7 @@ export const Settings = () => {
   const [devices, setDevices] = useState<MuseDevice[]>([]);
   const [connectedDevice, setConnectedDevice] = useState<MuseDevice | null>(null);
   const [scanning, setScanning] = useState(false);
-  const [fitbitBusy, setFitbitBusy] = useState(false);
+  const [heartRateBusy, setHeartRateBusy] = useState(false);
   const [connectingDeviceId, setConnectingDeviceId] = useState<string | null>(null);
   const [signalStrength, setSignalStrength] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -153,11 +153,11 @@ export const Settings = () => {
               <Pressable
                 accessibilityRole="button"
                 onPress={() => void toggleConnection(connectedDevice)}
-                disabled={connectingDeviceId !== null || fitbitBusy}
+                disabled={connectingDeviceId !== null || heartRateBusy}
                 style={({ pressed }) => [
                   styles.secondaryButton,
                   pressed && styles.pressed,
-                  (connectingDeviceId !== null || fitbitBusy) && styles.disabled,
+                  (connectingDeviceId !== null || heartRateBusy) && styles.disabled,
                 ]}>
                 <Text style={styles.secondaryButtonText}>Disconnect</Text>
               </Pressable>
@@ -167,11 +167,11 @@ export const Settings = () => {
           <Pressable
             accessibilityRole="button"
             onPress={() => void scanForDevices()}
-            disabled={scanning || connectingDeviceId !== null || fitbitBusy}
+            disabled={scanning || connectingDeviceId !== null || heartRateBusy}
             style={({ pressed }) => [
               styles.primaryButton,
               pressed && styles.pressed,
-              (scanning || connectingDeviceId !== null || fitbitBusy) && styles.disabled,
+              (scanning || connectingDeviceId !== null || heartRateBusy) && styles.disabled,
             ]}>
             {scanning && <ActivityIndicator size="small" color="#ffffff" />}
             <Text style={styles.primaryButtonText}>
@@ -206,11 +206,11 @@ export const Settings = () => {
                     <Pressable
                       accessibilityRole="button"
                       onPress={() => void toggleConnection(device)}
-                      disabled={connectingDeviceId !== null || fitbitBusy}
+                      disabled={connectingDeviceId !== null || heartRateBusy}
                       style={({ pressed }) => [
                         isConnected ? styles.secondaryButton : styles.connectButton,
                         pressed && styles.pressed,
-                        (connectingDeviceId !== null || fitbitBusy) && styles.disabled,
+                        (connectingDeviceId !== null || heartRateBusy) && styles.disabled,
                       ]}>
                       {isConnecting && (
                         <ActivityIndicator
@@ -236,14 +236,14 @@ export const Settings = () => {
           <Text style={styles.note}>
             Devices are matched by the advertised “Muse” name, which can include other Muse models.
             BLE connects directly to the headband; it does not create an operating system Bluetooth
-            pairing. Signal quality is based on received signal strength (RSSI).
-            Bloom saves EEG and heart-rate readings captured during a video session.
+            pairing. Signal quality is based on received signal strength (RSSI). Bloom saves EEG and
+            heart-rate readings captured during a video session.
           </Text>
         </View>
         <MuseEEGMonitor device={connectedDevice} />
-        <FitbitConnection
+        <HeartRateConnection
           otherDeviceBusy={scanning || connectingDeviceId !== null}
-          onBusyChange={setFitbitBusy}
+          onBusyChange={setHeartRateBusy}
         />
       </ScrollView>
     </StyledView>

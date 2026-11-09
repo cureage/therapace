@@ -27,7 +27,7 @@
         "react-native-ble-plx",
         {
           "isBackgroundEnabled": false,
-          "bluetoothAlwaysPermission": "Bloom uses Bluetooth to connect to your Muse headband and Fitbit heart-rate sensor and display live readings."
+          "bluetoothAlwaysPermission": "Bloom uses Bluetooth to connect to your Muse headband and heart-rate monitor and display live readings."
         }
       ],
       "expo-video",

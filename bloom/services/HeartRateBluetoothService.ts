@@ -12,7 +12,7 @@ export type HeartRateState = {
   error: string | null;
 };
 
-class FitbitBluetoothService {
+class HeartRateBluetoothService {
   private state: HeartRateState = { device: null, bpm: null, receivedAt: null, error: null };
   private listeners = new Set<(state: HeartRateState) => void>();
   private monitor: Subscription | null = null;
@@ -89,7 +89,7 @@ class FitbitBluetoothService {
   }
 
   async connect(id: string): Promise<void> {
-    if (this.connecting) throw new Error('A Fitbit connection is already in progress.');
+    if (this.connecting) throw new Error('A heart-rate monitor connection is already in progress.');
     this.connecting = true;
     try {
       await this.stopScan();
@@ -105,13 +105,15 @@ class FitbitBluetoothService {
         );
         if (!measurement?.isNotifiable) {
           throw new Error(
-            'This device is not sharing live heart rate. Enable Share heart rate in Google Health and retry.'
+            'This device does not expose a Bluetooth Heart Rate Service. Enable heart-rate broadcasting in the device or its companion app, then reconnect.'
           );
         }
         this.update({ device, bpm: null, receivedAt: null });
         this.disconnectListener = ble.onDeviceDisconnected(id, () => {
           this.clearConnection();
-          this.update({ error: 'Fitbit disconnected. Enable heart-rate sharing and reconnect.' });
+          this.update({
+            error: 'Heart-rate monitor disconnected. Enable heart-rate broadcasting and reconnect.',
+          });
         });
         this.monitor = device.monitorCharacteristicForService(
           HEART_RATE_SERVICE,
@@ -164,4 +166,4 @@ class FitbitBluetoothService {
   }
 }
 
-export const fitbitBluetoothService = new FitbitBluetoothService();
+export const heartRateBluetoothService = new HeartRateBluetoothService();

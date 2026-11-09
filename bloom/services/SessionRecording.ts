@@ -1,5 +1,5 @@
 import { getApiUrl } from '@/utils/constants';
-import { fitbitBluetoothService } from './FitbitBluetoothService';
+import { heartRateBluetoothService } from './HeartRateBluetoothService';
 import { museBluetoothService } from './MuseBluetoothService';
 import { MUSE_EEG_SAMPLE_RATE_HZ } from './MuseEEGMeasurement';
 
@@ -64,7 +64,7 @@ export function startSessionRecording() {
     eeg.set(museId, samples);
   });
   let initialHeartState = true;
-  const stopHeart = fitbitBluetoothService.subscribe(({ device, bpm, receivedAt }) => {
+  const stopHeart = heartRateBluetoothService.subscribe(({ device, bpm, receivedAt }) => {
     if (initialHeartState) {
       initialHeartState = false;
       return;

@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Device } from 'react-native-ble-plx';
-import { fitbitBluetoothService, type HeartRateState } from '@/services/FitbitBluetoothService';
+import {
+  heartRateBluetoothService,
+  type HeartRateState,
+} from '@/services/HeartRateBluetoothService';
 
 type Props = { otherDeviceBusy: boolean; onBusyChange: (busy: boolean) => void };
 
-export function FitbitConnection({ otherDeviceBusy, onBusyChange }: Props) {
+export function HeartRateConnection({ otherDeviceBusy, onBusyChange }: Props) {
   const [devices, setDevices] = useState<Device[]>([]);
   const [state, setState] = useState<HeartRateState>({
     device: null,
@@ -20,7 +23,7 @@ export function FitbitConnection({ otherDeviceBusy, onBusyChange }: Props) {
   const [foreground, setForeground] = useState(AppState.currentState === 'active');
 
   useEffect(() => {
-    const unsubscribe = fitbitBluetoothService.subscribe(setState);
+    const unsubscribe = heartRateBluetoothService.subscribe(setState);
     const timer = setInterval(() => setNow(Date.now()), 1000);
     const appState = AppState.addEventListener('change', (next) => {
       setForeground(next === 'active');
@@ -30,7 +33,7 @@ export function FitbitConnection({ otherDeviceBusy, onBusyChange }: Props) {
       unsubscribe();
       clearInterval(timer);
       appState.remove();
-      void fitbitBluetoothService.stopScan().catch(console.warn);
+      void heartRateBluetoothService.stopScan().catch(console.warn);
     };
   }, []);
 
@@ -44,7 +47,7 @@ export function FitbitConnection({ otherDeviceBusy, onBusyChange }: Props) {
     setDevices([]);
     setScanning(true);
     try {
-      await fitbitBluetoothService.startScan({
+      await heartRateBluetoothService.startScan({
         onDevice: (device) =>
           setDevices((current) => [...current.filter((item) => item.id !== device.id), device]),
         onComplete: () => setScanning(false),
@@ -55,7 +58,9 @@ export function FitbitConnection({ otherDeviceBusy, onBusyChange }: Props) {
       });
     } catch (scanError) {
       setScanning(false);
-      setError(scanError instanceof Error ? scanError.message : 'Could not scan for Fitbit.');
+      setError(
+        scanError instanceof Error ? scanError.message : 'Could not scan for heart-rate monitors.'
+      );
     }
   };
 
@@ -63,10 +68,12 @@ export function FitbitConnection({ otherDeviceBusy, onBusyChange }: Props) {
     setConnecting(true);
     setError(null);
     try {
-      await fitbitBluetoothService.connect(device.id);
+      await heartRateBluetoothService.connect(device.id);
     } catch (connectionError) {
       setError(
-        connectionError instanceof Error ? connectionError.message : 'Could not connect to Fitbit.'
+        connectionError instanceof Error
+          ? connectionError.message
+          : 'Could not connect to the heart-rate monitor.'
       );
     } finally {
       setScanning(false);
@@ -78,10 +85,12 @@ export function FitbitConnection({ otherDeviceBusy, onBusyChange }: Props) {
     setConnecting(true);
     setError(null);
     try {
-      await fitbitBluetoothService.disconnect();
+      await heartRateBluetoothService.disconnect();
     } catch (disconnectError) {
       setError(
-        disconnectError instanceof Error ? disconnectError.message : 'Could not disconnect Fitbit.'
+        disconnectError instanceof Error
+          ? disconnectError.message
+          : 'Could not disconnect the heart-rate monitor.'
       );
     } finally {
       setConnecting(false);
@@ -94,12 +103,14 @@ export function FitbitConnection({ otherDeviceBusy, onBusyChange }: Props) {
   return (
     <View style={styles.section}>
       <View style={styles.row}>
-        <Text style={styles.title}>Fitbit Air · Heart rate</Text>
+        <Text style={styles.title}>Heart-rate monitor</Text>
         {(scanning || connecting) && <ActivityIndicator color="#426b54" />}
       </View>
       <Text style={styles.detail}>
-        In Google Health, open Connections → your Fitbit Air → Share heart rate → Get started. Keep
-        the Air nearby and wear it snugly, then scan below.
+        Scan for any monitor that broadcasts the standard Bluetooth Heart Rate Service. On Garmin,
+        enable Broadcast Heart Rate. Apple Watch does not broadcast heart rate natively; use a watch
+        app that advertises the standard BLE Heart Rate Service. Fitbit Air users can enable Share
+        heart rate in Google Health.
       </Text>
       {state.device && (
         <View style={styles.reading}>
@@ -127,7 +138,7 @@ export function FitbitConnection({ otherDeviceBusy, onBusyChange }: Props) {
             disabled={busy}
             onPress={() => void disconnect()}
             style={[styles.button, busy && styles.disabled]}>
-            <Text style={styles.buttonText}>Disconnect Fitbit</Text>
+            <Text style={styles.buttonText}>Disconnect monitor</Text>
           </Pressable>
         </View>
       )}
@@ -137,11 +148,7 @@ export function FitbitConnection({ otherDeviceBusy, onBusyChange }: Props) {
         onPress={() => void scan()}
         style={[styles.button, busy && styles.disabled]}>
         <Text style={styles.buttonText}>
-          {scanning
-            ? 'Scanning…'
-            : connecting
-              ? 'Connecting…'
-              : 'Scan for Fitbit / heart-rate sensors'}
+          {scanning ? 'Scanning…' : connecting ? 'Connecting…' : 'Scan for heart-rate monitors'}
         </Text>
       </Pressable>
       {otherDeviceBusy && (
@@ -165,17 +172,17 @@ export function FitbitConnection({ otherDeviceBusy, onBusyChange }: Props) {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`Connect ${device.name ?? 'heart-rate sensor'}`}
-              disabled={busy}
+              disabled={connecting || otherDeviceBusy}
               onPress={() => void connect(device)}
-              style={[styles.button, busy && styles.disabled]}>
-              <Text style={styles.buttonText}>Connect</Text>
+              style={[styles.button, (connecting || otherDeviceBusy) && styles.disabled]}>
+              <Text style={styles.buttonText}>{connecting ? 'Connecting…' : 'Connect'}</Text>
             </Pressable>
           </View>
         ))}
       {!scanning && devices.length === 0 && !state.device && (
         <Text style={styles.detail}>
-          No sensors listed yet. Enable heart-rate sharing and scan. Other Bluetooth Heart Rate
-          Profile sensors may also appear.
+          No sensors listed yet. Enable heart-rate broadcasting on your monitor, keep it nearby, and
+          scan again. Monitors should advertise the standard Bluetooth Heart Rate Service.
         </Text>
       )}
     </View>

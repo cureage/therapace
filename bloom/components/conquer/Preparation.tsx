@@ -10,7 +10,7 @@ import {
   requestExposureVideo,
   type ExposureVideo,
 } from '@/services/ExposureVideoService';
-import { fitbitBluetoothService } from '@/services/FitbitBluetoothService';
+import { heartRateBluetoothService } from '@/services/HeartRateBluetoothService';
 import { museBluetoothService } from '@/services/MuseBluetoothService';
 import {
   handOffRecording,
@@ -110,7 +110,7 @@ export const Preparation = () => {
       museConnected = !!device;
       setSensorConnected(museConnected || heartConnected);
     });
-    const stopHeart = fitbitBluetoothService.subscribe(({ device }) => {
+    const stopHeart = heartRateBluetoothService.subscribe(({ device }) => {
       heartConnected = !!device;
       setSensorConnected(museConnected || heartConnected);
     });
