@@ -108,7 +108,7 @@ export const Home = () => {
             {week.map(({ date, sessions }) => (
               <View key={getDateKey(date)} className="flex-1 items-center gap-2">
                 <Text className="text-xs text-neutral-600">{sessions}</Text>
-                <View className="h-28 w-full justify-end overflow-hidden rounded-t-md bg-neutral-200">
+                <View className="h-28 w-full justify-end overflow-hidden rounded-t-md bg-area-foreground">
                   <View
                     className="bg-primary w-full rounded-t-md"
                     style={{ height: `${Math.max((sessions / maxSessions) * 100, 4)}%` }}

@@ -50,10 +50,10 @@ const TopLeader = ({
   );
 };
 
-const LeaderRow = ({ user, index }: { user: LeaderboardEntry; index: number }) => {
+const LeaderRow = ({ user, index }: { user: LeaderboardEntry; index: number; myUserId: any }) => {
   return (
-    <TableRow className="flex flex-row gap-4">
-      <TableData className="flex-[1] text-sm">{index + 1}</TableData>
+    <TableRow className={`flex flex-row gap-4`}>
+      <TableData className="flex-[1] text-sm">#{index + 1}</TableData>
       <TableData className="flex-[4] text-sm">{user.name}</TableData>
       <TableData className="flex-[2] flex-row items-center">
         <Icon as={Shield} size="xs" />
@@ -75,7 +75,8 @@ export const Leaderboard = () => {
     staleTime: 60 * 1000, // treat data as fresh for 60s
   });
   const entries = data ?? [];
-  const userId = useAppSelector((state) => state.user.currentUser?.id);
+  const currentUser = useAppSelector((state) => state.user.currentUser);
+  const userId = currentUser?.id;
 
   async function fetchLeaderboard(sort: LeaderboardSort): Promise<LeaderboardEntry[]> {
     // const url = `${getApiUrl(endpoints.leaderboard)}?sort=${encodeURIComponent(sort)}`;
@@ -135,7 +136,7 @@ export const Leaderboard = () => {
           </ButtonText>
         </Button>
       </ButtonGroup>
-      <View className="pt-4">
+      <View className="min-h-0 flex-1 pt-4">
         {isLoading ? (
           <Text className="text-center">Loading leaderboard...</Text>
         ) : isError ? (
@@ -150,7 +151,7 @@ export const Leaderboard = () => {
             })}
           </View>
         ) : null}
-        <ScrollView>
+        <ScrollView className="flex-1">
           <Table className="w-full">
             <TableBody>
               {(entries.length >= 3 ? entries.slice(3) : entries).map((item, index) => (
@@ -164,6 +165,21 @@ export const Leaderboard = () => {
           </Table>
         </ScrollView>
       </View>
+      {currentUser ? (
+        <View className="border-primary/20 bg-primary/10 mt-4 rounded-xl border p-4">
+          <Text className="mb-3 text-base font-semibold">You</Text>
+          <View className="flex-row gap-4">
+            <View className="flex-row items-center gap-2">
+              <Icon as={Flame} className="text-accent" />
+              <Text>{currentUser.streak} day streak</Text>
+            </View>
+            <View className="flex-row items-center gap-2">
+              <Icon as={Shield} className="text-primary" />
+              <Text>{currentUser.numConquered ?? 0} fears conquered</Text>
+            </View>
+          </View>
+        </View>
+      ) : null}
     </StyledView>
   );
 };

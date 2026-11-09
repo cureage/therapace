@@ -134,7 +134,7 @@ export const Profile = () => {
               {updateProfileData.fears.map((item: any, index: any) => (
                 <View
                   key={item}
-                  className="flex-row items-center rounded-2xl border border-neutral-200 bg-white px-4 py-3">
+                  className="flex-row items-center rounded-2xl border border-neutral-200 dark:border-neutral-500 bg-area-foreground px-4 py-3">
                   <View className="bg-primary/10 mr-3 h-7 w-7 items-center justify-center rounded-full">
                     <Text className="text-primary font-bold">{index + 1}</Text>
                   </View>

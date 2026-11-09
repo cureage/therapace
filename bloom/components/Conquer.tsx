@@ -21,20 +21,20 @@ export const Conquer = () => {
               <View className="bg-primary h-16 w-16 rounded-full" />
             </View>
           </View>
-          <Heading size="3xl" className="text-center text-neutral-900">
+          <Heading size="3xl" className="text-center">
             Conquer Your Fears
           </Heading>
-          <Text size="lg" className="mt-4 max-w-md text-center leading-7 text-neutral-600">
+          <Text size="lg" className="mt-4 max-w-md text-center leading-7 text-muted-foreground">
             Face what scares you, one small step at a time. Exposure therapy helps you build
             confidence by gradually getting used to the things that make you anxious, at a pace that
             feels right for you.
           </Text>
-          <Text size="lg" className="mt-4 max-w-md text-center leading-7 text-neutral-600">
+          <Text size="lg" className="mt-4 max-w-md text-center leading-7 text-muted-foreground">
             You're always in control. Pause, slow down, or stop whenever you need to.
           </Text>
           <Text
             size="lg"
-            className="mt-4 max-w-md text-center leading-7 font-bold text-neutral-600">
+            className="mt-4 max-w-md text-center leading-7 font-bold text-muted-foreground">
             What do you want to conquer today?
           </Text>
         </View>
@@ -42,7 +42,7 @@ export const Conquer = () => {
           {fears.map((item: any, index: any) => (
             <TouchableOpacity
               key={item}
-              className="flex-row items-center rounded-2xl border border-neutral-200 bg-white px-4 py-3"
+              className="flex-row items-center rounded-2xl border border-neutral-200 dark:border-neutral-600 bg-area-foreground px-4 py-3"
               onPress={() => {
                 dispatch(startConquer(item))
               }}>
