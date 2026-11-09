@@ -1,41 +1,24 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, AppState, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import type { Device } from 'react-native-ble-plx';
-import {
-  heartRateBluetoothService,
-  type HeartRateState,
-} from '@/services/HeartRateBluetoothService';
+import { useHeartRate } from '@/hooks/useHeartRate';
+import { heartRateBluetoothService } from '@/services/HeartRateBluetoothService';
 
 type Props = { otherDeviceBusy: boolean; onBusyChange: (busy: boolean) => void };
 
 export function HeartRateConnection({ otherDeviceBusy, onBusyChange }: Props) {
   const [devices, setDevices] = useState<Device[]>([]);
-  const [state, setState] = useState<HeartRateState>({
-    device: null,
-    bpm: null,
-    receivedAt: null,
-    error: null,
-  });
+  const { state, fresh, live } = useHeartRate();
   const [scanning, setScanning] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [now, setNow] = useState(() => Date.now());
-  const [foreground, setForeground] = useState(AppState.currentState === 'active');
 
-  useEffect(() => {
-    const unsubscribe = heartRateBluetoothService.subscribe(setState);
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    const appState = AppState.addEventListener('change', (next) => {
-      setForeground(next === 'active');
-      setNow(Date.now());
-    });
-    return () => {
-      unsubscribe();
-      clearInterval(timer);
-      appState.remove();
+  useEffect(
+    () => () => {
       void heartRateBluetoothService.stopScan().catch(console.warn);
-    };
-  }, []);
+    },
+    []
+  );
 
   useEffect(() => {
     onBusyChange(scanning || connecting);
@@ -98,8 +81,6 @@ export function HeartRateConnection({ otherDeviceBusy, onBusyChange }: Props) {
   };
 
   const busy = scanning || connecting || otherDeviceBusy;
-  const fresh = foreground && state.receivedAt !== null && now - state.receivedAt < 10_000;
-  const live = fresh && state.bpm !== null;
   return (
     <View className="bg-area-foreground mt-6 gap-4 rounded-[20px] p-[18px]">
       <View className="flex-row items-center justify-between gap-3">
