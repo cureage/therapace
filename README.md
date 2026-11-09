@@ -284,3 +284,5 @@ licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
   url       = {https://doi.org/10.5281/zenodo.8431451}
 }
 ```
+## Presentation Slides
+presentation slides can be found [here](Bloom%20-%20Nathacks%20.pdf)
