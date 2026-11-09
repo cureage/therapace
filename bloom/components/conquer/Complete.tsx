@@ -1,10 +1,11 @@
-import { useRoute } from '@react-navigation/native';
+import { StackActions, useNavigation, useRoute } from '@react-navigation/native';
 import { ScrollView, View } from 'react-native';
 import { StyledView } from '@/components/StyledView';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { HeartRateChart } from '@/components/HeartRateChart';
+import type { ExposureVideo } from '@/services/ExposureVideoService';
 import type { SessionAnalysis } from '@/services/SessionAnalysis';
 import { useAppDispatch } from '@/store/hooks';
 import { endConquer } from '@/store/slices/userSlice';
@@ -27,7 +28,11 @@ const NEXT_TIME_MESSAGES = [
 
 const NEXT_TIME_MESSAGE = NEXT_TIME_MESSAGES[Math.floor(Math.random() * NEXT_TIME_MESSAGES.length)];
 
-type CompleteParams = { cancelled?: boolean; analysis?: SessionAnalysis | null };
+type CompleteParams = {
+  cancelled?: boolean;
+  analysis?: SessionAnalysis | null;
+  video?: ExposureVideo;
+};
 
 const Stat = ({ label, value, detail }: { label: string; value: string; detail: string }) => (
   <View className="bg-primary/10 flex-1 rounded-xl p-3">
@@ -112,10 +117,13 @@ const SessionResults = ({ analysis }: { analysis: SessionAnalysis }) => {
 
 export const Complete = () => {
   const dispatch = useAppDispatch();
+  const navigation = useNavigation();
   const route = useRoute();
   const params = route.params as CompleteParams | undefined;
   const wasCancelled = params?.cancelled === true;
   const analysis = params?.analysis ?? null;
+  // Offered once the video has played through: breathe and baseline again, then rewatch it.
+  const repeatVideo = wasCancelled ? null : (params?.video ?? null);
 
   return (
     <StyledView>
@@ -143,9 +151,25 @@ export const Complete = () => {
         </View>
         {analysis ? <SessionResults analysis={analysis} /> : null}
       </ScrollView>
-      <Button size="lg" onPress={() => dispatch(endConquer())}>
-        <ButtonText className="text-white">Back to my fears</ButtonText>
-      </Button>
+      <View className="gap-3">
+        {repeatVideo ? (
+          <Button
+            size="lg"
+            onPress={() =>
+              navigation.dispatch(StackActions.replace('Preparation', { video: repeatVideo }))
+            }>
+            <ButtonText className="text-white">Repeat this session</ButtonText>
+          </Button>
+        ) : null}
+        <Button
+          size="lg"
+          variant={repeatVideo ? 'outline' : 'default'}
+          onPress={() => dispatch(endConquer())}>
+          <ButtonText className={repeatVideo ? undefined : 'text-white'}>
+            Back to my fears
+          </ButtonText>
+        </Button>
+      </View>
     </StyledView>
   );
 };

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, View, useAnimatedValue } from 'react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation, useRoute } from '@react-navigation/native';
 import { StyledView } from '@/components/StyledView';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Heading } from '@/components/ui/heading';
@@ -74,11 +74,14 @@ const BreathingCircle = () => {
 
 export const Preparation = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  // Set when repeating a session: reuse its video and skip generating a new one.
+  const repeatVideo = (route.params as { video?: ExposureVideo } | undefined)?.video ?? null;
   const dispatch = useAppDispatch();
   const conquer = useAppSelector((state) => state.user.conquerRequest);
   const token = useAppSelector((state) => state.user.authToken);
   const [attempt, setAttempt] = useState(0);
-  const [video, setVideo] = useState<ExposureVideo | null>(null);
+  const [video, setVideo] = useState<ExposureVideo | null>(repeatVideo);
   const [error, setError] = useState<string | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [sensorConnected, setSensorConnected] = useState(false);
@@ -126,7 +129,7 @@ export const Preparation = () => {
   }, []);
 
   useEffect(() => {
-    if (!conquer || !token) return;
+    if (!conquer || !token || repeatVideo) return;
     const requestKey = (requestKeys.current[attempt] ??=
       `${Date.now()}-${Math.random().toString(36).slice(2)}`);
     const controller = new AbortController();
@@ -168,7 +171,7 @@ export const Preparation = () => {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [attempt, conquer, token]);
+  }, [attempt, conquer, repeatVideo, token]);
 
   useEffect(() => {
     if (!video || !prepared) return;
