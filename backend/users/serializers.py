@@ -90,6 +90,19 @@ class UserSerializer(serializers.ModelSerializer):
         return current_streak(user)
 
 
+class LeaderboardEntrySerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+    conquered = serializers.IntegerField(read_only=True)
+    streak = serializers.IntegerField(source="leaderboard_streak", read_only=True)
+
+    class Meta:
+        model = User
+        fields = ("id", "name", "conquered", "streak")
+
+    def get_name(self, user):
+        return " ".join(part for part in (user.first_name, user.last_name) if part) or "Bloom member"
+
+
 class EEGSessionCreateSerializer(serializers.Serializer):
     session_data = serializers.JSONField()
     status = serializers.ChoiceField(choices=EEGSession.Status.choices, default=EEGSession.Status.COMPLETE)

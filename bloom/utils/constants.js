@@ -4,7 +4,7 @@ export const endpoints = {
   login: '/api/auth/login/',
   sensorIngest: '/api/sensors/',
   signup: '/api/auth/register/',
-  leaderboard: '/api/leaderboard',
+  leaderboard: '/api/leaderboard/',
   progress: '/api/progress',
   videos: '/api/videos/',
 };

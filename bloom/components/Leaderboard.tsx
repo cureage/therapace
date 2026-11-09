@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { StyledView } from '@/components/StyledView';
 import { Heading } from '@/components/ui/heading';
 import { useQuery } from '@tanstack/react-query';
-import { endpoints, getApiUrl } from '@/utils/constants';
 import { ScrollView, View } from 'react-native';
 import { Text } from './ui/text';
 import { ProfilePicture } from './ProfilePicture';
@@ -11,15 +10,11 @@ import { Shield, Flame } from 'lucide-react-native';
 import { Table, TableBody, TableRow, TableData } from '@/components/ui/table';
 import { useAppSelector } from '@/store/hooks';
 import { ButtonGroup, Button, ButtonText } from './ui/button';
-
-type LeaderboardSort = 'streak' | 'conquered';
-
-type LeaderboardEntry = {
-  id: string;
-  name: string;
-  conquered: number;
-  streak: number;
-};
+import {
+  fetchLeaderboard,
+  type LeaderboardEntry,
+  type LeaderboardSort,
+} from '@/services/LeaderboardService';
 
 const TopLeader = ({
   user,
@@ -50,17 +45,17 @@ const TopLeader = ({
   );
 };
 
-const LeaderRow = ({ user, index }: { user: LeaderboardEntry; index: number; }) => {
+const LeaderRow = ({ user, index }: { user: LeaderboardEntry; index: number }) => {
   return (
     <TableRow className={`flex flex-row gap-4`}>
       <TableData className="flex-[2] text-sm">#{index + 1}</TableData>
       <TableData className="flex-[4] text-sm">{user.name}</TableData>
       <TableData className="flex-[2] flex-row items-center">
-        <Icon as={Shield} size="xs" className='translate-y-[1px]' />
+        <Icon as={Shield} size="xs" className="translate-y-[1px]" />
         <Text className="text-sm">{user?.conquered}</Text>
       </TableData>
       <TableData className="flex-[2] flex-row items-center">
-        <Icon as={Flame} size="xs" className='translate-y-[1px]' />
+        <Icon as={Flame} size="xs" className="translate-y-[1px]" />
         <Text className="text-sm">{user?.streak}</Text>
       </TableData>
     </TableRow>
@@ -69,53 +64,20 @@ const LeaderRow = ({ user, index }: { user: LeaderboardEntry; index: number; }) 
 
 export const Leaderboard = () => {
   const [sortBy, setSortBy] = useState<LeaderboardSort>('streak');
+  const currentUser = useAppSelector((state) => state.user.currentUser);
+  const authToken = useAppSelector((state) => state.user.authToken);
+  const userId = currentUser?.id;
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['leaderboard', sortBy],
-    queryFn: () => fetchLeaderboard(sortBy),
+    queryKey: ['leaderboard', sortBy, userId],
+    queryFn: () => {
+      if (!authToken) throw new Error('Sign in to load the leaderboard.');
+      return fetchLeaderboard(sortBy, authToken);
+    },
+    enabled: Boolean(authToken),
     staleTime: 60 * 1000, // treat data as fresh for 60s
   });
   const entries = data ?? [];
-  const currentUser = useAppSelector((state) => state.user.currentUser);
-  const userId = currentUser?.id;
-
-  async function fetchLeaderboard(sort: LeaderboardSort): Promise<LeaderboardEntry[]> {
-    // const url = `${getApiUrl(endpoints.leaderboard)}?sort=${encodeURIComponent(sort)}`;
-    // const response = await fetch(url);
-    // if (!response.ok) {
-    //   throw new Error(`Failed to fetch leaderboard (${response.status})`);
-    // }
-    // return response.json();
-    if (sort == 'streak') {
-      return [
-        { name: 'Chidi', id: '10', conquered: 10, streak: 342 },
-        { name: 'Yuki', id: '7', conquered: 8, streak: 301 },
-        { name: 'Priya', id: '3', conquered: 9, streak: 214 },
-        { name: 'Lena', id: '5', conquered: 7, streak: 156 },
-        { name: 'Liam', id: '12', conquered: 5, streak: 128 },
-        { name: 'Ahmed', id: '1', conquered: 11, streak: 100 },
-        { name: 'Tammy', id: '2', conquered: 5, streak: 87 },
-        { name: 'Oliver', id: '9', conquered: 6, streak: 73 },
-        { name: 'Diego', id: '6', conquered: 4, streak: 45 },
-        { name: 'Marcus', id: '4', conquered: 3, streak: 12 },
-        { name: 'Fatima', id: '8', conquered: 2, streak: 9 },
-        { name: 'Sofia', id: '11', conquered: 1, streak: 4 },
-      ];
-    }
-    return [
-      { name: 'Ahmed', id: '1', conquered: 11, streak: 100 },
-      { name: 'Chidi', id: '10', conquered: 10, streak: 342 },
-      { name: 'Priya', id: '3', conquered: 9, streak: 214 },
-      { name: 'Yuki', id: '7', conquered: 8, streak: 301 },
-      { name: 'Lena', id: '5', conquered: 7, streak: 156 },
-      { name: 'Oliver', id: '9', conquered: 6, streak: 73 },
-      { name: 'Liam', id: '12', conquered: 5, streak: 128 },
-      { name: 'Tammy', id: '2', conquered: 5, streak: 87 },
-      { name: 'Diego', id: '6', conquered: 4, streak: 45 },
-      { name: 'Marcus', id: '4', conquered: 3, streak: 12 },
-      { name: 'Fatima', id: '8', conquered: 2, streak: 9 },
-      { name: 'Sofia', id: '11', conquered: 1, streak: 4 },
-    ];
-  }
+  const currentEntry = entries.find((entry) => entry.id === userId);
 
   return (
     <StyledView className="flex h-full flex-col justify-between">
@@ -137,10 +99,14 @@ export const Leaderboard = () => {
         </Button>
       </ButtonGroup>
       <View className="min-h-0 flex-1 pt-4">
-        {isLoading ? (
+        {!authToken ? (
+          <Text className="text-center">Sign in to view the leaderboard.</Text>
+        ) : isLoading ? (
           <Text className="text-center">Loading leaderboard...</Text>
         ) : isError ? (
           <Text className="text-center">Could not load the leaderboard. Please try again.</Text>
+        ) : entries.length === 0 ? (
+          <Text className="text-center">No leaderboard activity yet.</Text>
         ) : entries.length >= 3 ? (
           <View className="flex w-full flex-row justify-around">
             {[1, 0, 2].map((index) => {
@@ -171,11 +137,13 @@ export const Leaderboard = () => {
           <View className="flex-row gap-4">
             <View className="flex-row items-center gap-2">
               <Icon as={Flame} className="text-accent" />
-              <Text>{currentUser.streak} day streak</Text>
+              <Text>{currentEntry?.streak ?? currentUser.streak} day streak</Text>
             </View>
             <View className="flex-row items-center gap-2">
               <Icon as={Shield} className="text-primary" />
-              <Text>{currentUser.numConquered ?? 0} fears conquered</Text>
+              <Text>
+                {currentEntry?.conquered ?? currentUser.numConquered ?? 0} fears conquered
+              </Text>
             </View>
           </View>
         </View>

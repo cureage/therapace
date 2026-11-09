@@ -68,6 +68,26 @@ as one streak day. The current streak is active through the day after the last
 session and is reported as zero once that day has passed. These streak fields
 are also available from `/api/auth/me/`.
 
+### Leaderboard
+
+Bloom's authenticated `GET /api/leaderboard/?sort=streak` endpoint returns
+users ordered by their current streak. Use `sort=conquered` to order by the
+number of distinct fear labels with at least one completed EEG session. Partial
+sessions do not count. The response includes only user IDs, display names, and
+the two leaderboard metrics; it does not expose email addresses. Users without
+an active streak are reported with a streak of zero.
+
+To populate a development database with repeatable leaderboard demo users,
+fears, completed sessions, and streak days, run:
+
+```sh
+cd backend
+python manage.py seed_leaderboard
+```
+
+The command uses reserved `example.test` addresses and unusable passwords, and
+can be rerun without creating duplicate activity.
+
 ### Bloom app reporting
 
 Set `EXPO_PUBLIC_API_URL` to the backend origin before starting Expo (do not

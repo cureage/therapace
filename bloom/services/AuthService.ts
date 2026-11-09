@@ -21,8 +21,9 @@ export async function authenticate(path: string, credentials: object, isOnboardi
     isOnboarding,
     streak: user.streak,
     maxStreak: user.max_streak,
-    // Keep the existing demo choices available until onboarding persists fears.
-    fears: isOnboarding ? [] : ['Spiders', 'Clowns'],
+    fears: Array.isArray(user.fears)
+      ? user.fears.filter((fear: unknown): fear is string => typeof fear === 'string')
+      : [],
     isConquering: false,
     authToken: result.token as string,
   };

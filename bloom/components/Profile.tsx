@@ -19,7 +19,7 @@ import { MAX_FEARS } from '@/utils/constants';
 import { SquarePen, LogOut } from 'lucide-react-native';
 import { Icon } from '@/components/ui/icon';
 import { LogoutModal } from '@/components/LogoutModal';
-import { logout } from '@/store/slices/userSlice';
+import { logout, setFears } from '@/store/slices/userSlice';
 
 export const Profile = () => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -46,12 +46,13 @@ export const Profile = () => {
       updateProfileData.fears.includes(cleanFear)
     )
       return;
-    setUpdateProfileData((curr) => ({ ...curr, fears: curr.fears.push(cleanFear) }));
+    setUpdateProfileData((curr) => ({ ...curr, fears: [...curr.fears, cleanFear] }));
     setFear('');
   };
   const dispatch = useAppDispatch();
 
   function saveProfile() {
+    dispatch(setFears(updateProfileData.fears));
     setIsEdit(false);
   }
 
@@ -153,9 +154,10 @@ export const Profile = () => {
                       size="sm"
                       variant="ghost"
                       onPress={() =>
-                        setUpdateProfileData(
-                          updateProfileData.fears.filter((fearItem: any) => fearItem !== item)
-                        )
+                        setUpdateProfileData((curr) => ({
+                          ...curr,
+                          fears: curr.fears.filter((fearItem: any) => fearItem !== item),
+                        }))
                       }>
                       <ButtonText className="text-neutral-500">Remove</ButtonText>
                     </Button>

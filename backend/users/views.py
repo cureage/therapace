@@ -1,5 +1,9 @@
 import json
+from datetime import timedelta, timezone as datetime_timezone
 
+from django.db.models import Case, CharField, Count, F, IntegerField, Q, Value, When
+from django.db.models.functions import Cast, Lower, Trim
+from django.utils import timezone
 from rest_framework import renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.authtoken.models import Token
@@ -9,10 +13,11 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from . import video_generation
-from .models import AIVideo, EEGSession, Fear
+from .models import AIVideo, EEGSession, Fear, User
 from .serializers import (
     AIVideoSerializer, EEGSessionCreateSerializer, ExposureVideoRequestSerializer, FearSerializer,
-    GenerateVideoSerializer, LoginSerializer, RegisterSerializer, UserSerializer,
+    GenerateVideoSerializer, LeaderboardEntrySerializer, LoginSerializer, RegisterSerializer,
+    UserSerializer,
 )
 from .streaks import complete_eeg_session
 from .streaming import ranged_file_response
@@ -181,6 +186,50 @@ class MeView(APIView):
 
     def get(self, request):
         return Response(UserSerializer(request.user).data)
+
+
+class LeaderboardView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        sort = request.query_params.get("sort", "streak")
+        if sort not in {"streak", "conquered"}:
+            return Response(
+                {"sort": ["Choose either 'streak' or 'conquered'."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        today = timezone.now().astimezone(datetime_timezone.utc).date()
+        active_days = (today, today - timedelta(days=1))
+        fear_name = Lower(Trim(Cast("eeg_sessions__session_data__fear", CharField())))
+        users = User.objects.filter(
+            is_active=True,
+            is_staff=False,
+            is_superuser=False,
+        ).annotate(
+            conquered=Count(
+                fear_name,
+                distinct=True,
+                filter=(
+                    Q(eeg_sessions__status=EEGSession.Status.COMPLETE)
+                    & Q(eeg_sessions__session_data__fear__isnull=False)
+                    & ~Q(eeg_sessions__session_data__fear="")
+                    & ~Q(eeg_sessions__session_data__fear__regex=r"^\s*$")
+                ),
+            ),
+            leaderboard_streak=Case(
+                When(last_activity_date__in=active_days, then=F("streak")),
+                default=Value(0),
+                output_field=IntegerField(),
+            ),
+        )
+
+        if sort == "streak":
+            users = users.order_by("-leaderboard_streak", "-conquered", "pk")
+        else:
+            users = users.order_by("-conquered", "-leaderboard_streak", "pk")
+
+        return Response(LeaderboardEntrySerializer(users, many=True).data)
 
 
 class EEGSessionView(APIView):
