@@ -6,6 +6,7 @@ import { BackHandler, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import { LiveHeartRate } from '@/components/conquer/LiveHeartRate';
 import { exposureVideoSource, type ExposureVideo } from '@/services/ExposureVideoService';
 import { analyzeSession } from '@/services/SessionAnalysis';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -196,6 +197,9 @@ export const Conquer = () => {
           className="bg-primary h-full rounded-full"
           style={{ width: `${progress * 100}%` as const }}
         />
+      </View>
+      <View className="absolute right-5" style={{ top: insets.top + 28, pointerEvents: 'none' }}>
+        <LiveHeartRate />
       </View>
       <View className="absolute right-5 bottom-10 left-5 gap-3">
         {error && (
