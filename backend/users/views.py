@@ -4,7 +4,13 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import LoginSerializer, RegisterSerializer, UserSerializer
+from .serializers import (
+    EEGSessionCreateSerializer,
+    LoginSerializer,
+    RegisterSerializer,
+    UserSerializer,
+)
+from .streaks import complete_eeg_session
 
 
 class RegisterView(APIView):
@@ -45,3 +51,23 @@ class MeView(APIView):
 
     def get(self, request):
         return Response(UserSerializer(request.user).data)
+
+
+class EEGSessionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = EEGSessionCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        session, user = complete_eeg_session(
+            user=request.user,
+            session_data=serializer.validated_data["session_data"],
+        )
+        return Response(
+            {
+                "id": session.pk,
+                "created_at": session.created_at,
+                "user": UserSerializer(user).data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
