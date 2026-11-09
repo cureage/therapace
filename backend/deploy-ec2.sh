@@ -48,12 +48,11 @@ if [[ ! "$APP_HOSTNAME" =~ ^[A-Za-z0-9.-]+$ ]]; then
 fi
 
 LETSENCRYPT_EMAIL="${LETSENCRYPT_EMAIL:-}"
-if [ -n "$LETSENCRYPT_EMAIL" ] && [[ ! "$LETSENCRYPT_EMAIL" =~ ^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$ ]]; then
-  echo "LETSENCRYPT_EMAIL is not a valid email address." >&2
-  exit 1
+if [ -z "$LETSENCRYPT_EMAIL" ]; then
+  read -r -p "Email address for Let's Encrypt certificate notices: " LETSENCRYPT_EMAIL
 fi
-if [ -n "$LETSENCRYPT_EMAIL" ] && [[ "$APP_HOSTNAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  echo "Let's Encrypt requires a DNS hostname; omit LETSENCRYPT_EMAIL to skip HTTPS setup." >&2
+if [[ ! "$LETSENCRYPT_EMAIL" =~ ^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$ ]]; then
+  echo "LETSENCRYPT_EMAIL is not a valid email address." >&2
   exit 1
 fi
 
@@ -63,6 +62,9 @@ ENV_DIR="/etc/therapace"
 ENV_FILE="$ENV_DIR/backend.env"
 VENV_DIR="$BACKEND_DIR/venv"
 STATIC_DIR="/var/www/therapace/static"
+CERTBOT_VENV="/opt/certbot"
+CERTBOT_BIN="$CERTBOT_VENV/bin/certbot"
+CERT_DIR="/etc/letsencrypt/live/$APP_HOSTNAME"
 if [ "$PLATFORM" = "ubuntu" ]; then
   NGINX_SITE="/etc/nginx/sites-available/therapace"
   PYTHON_BIN="python3"
@@ -90,18 +92,9 @@ else
     python3.13-devel
 fi
 
-if [ -n "$LETSENCRYPT_EMAIL" ]; then
-  if [ "$PLATFORM" = "ubuntu" ]; then
-    apt-get install -y --no-install-recommends certbot python3-certbot-nginx
-    CERTBOT_BIN="certbot"
-  else
-    CERTBOT_VENV="/opt/certbot"
-    "$PYTHON_BIN" -m venv "$CERTBOT_VENV"
-    "$CERTBOT_VENV/bin/python" -m pip install --upgrade pip
-    "$CERTBOT_VENV/bin/python" -m pip install certbot certbot-nginx
-    CERTBOT_BIN="$CERTBOT_VENV/bin/certbot"
-  fi
-fi
+"$PYTHON_BIN" -m venv "$CERTBOT_VENV"
+"$CERTBOT_VENV/bin/python" -m pip install --upgrade pip
+"$CERTBOT_VENV/bin/python" -m pip install --upgrade 'certbot>=5.4,<6'
 
 if ! getent group "$APP_GROUP" >/dev/null; then
   groupadd --system "$APP_GROUP"
@@ -113,7 +106,7 @@ if ! id "$APP_USER" >/dev/null 2>&1; then
 fi
 
 if [ "$PLATFORM" = "amazon-linux-2023" ] && ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
-  echo "Python 3.11 is required but was not installed." >&2
+  echo "Python 3.13 is required but was not installed." >&2
   exit 1
 fi
 "$PYTHON_BIN" -m venv "$VENV_DIR"
@@ -129,12 +122,8 @@ if [ -z "$secret_key" ]; then
   secret_key="$(openssl rand -base64 48 | tr -d '\n')"
 fi
 
-secure_redirect=False
-csrf_origin=""
-if [ -n "$LETSENCRYPT_EMAIL" ]; then
-  secure_redirect=True
-  csrf_origin="https://$APP_HOSTNAME"
-fi
+secure_redirect=True
+csrf_origin="https://$APP_HOSTNAME"
 
 tmp_env_file="$(mktemp "$ENV_DIR/backend.env.XXXXXX")"
 cat > "$tmp_env_file" <<EOF
@@ -217,11 +206,48 @@ runuser -u "$APP_USER" -- env \
   DJANGO_STATIC_ROOT="$STATIC_DIR" \
   "$VENV_DIR/bin/python" "$BACKEND_DIR/manage.py" collectstatic --noinput
 
+systemctl daemon-reload
+systemctl enable therapace-gunicorn.service therapace-daphne.service nginx
+systemctl restart therapace-gunicorn.service therapace-daphne.service
+systemctl stop nginx
+
+if [ ! -s "$CERT_DIR/fullchain.pem" ] || [ ! -s "$CERT_DIR/privkey.pem" ]; then
+  certbot_args=(
+    certonly
+    --standalone
+    --non-interactive
+    --agree-tos
+    --email "$LETSENCRYPT_EMAIL"
+    --cert-name "$APP_HOSTNAME"
+  )
+  if [[ "$APP_HOSTNAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    certbot_args+=(--preferred-profile shortlived --ip-address "$APP_HOSTNAME")
+  else
+    certbot_args+=(-d "$APP_HOSTNAME")
+  fi
+  if ! "$CERTBOT_BIN" "${certbot_args[@]}"; then
+    systemctl start nginx
+    echo "Certificate issuance failed. Nginx was restarted; check DNS/IP reachability and inbound TCP 80." >&2
+    exit 1
+  fi
+fi
+
 cat > "$NGINX_SITE" <<EOF
 server {
     listen 80;
     server_name $APP_HOSTNAME;
+    return 301 https://\$host\$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name $APP_HOSTNAME;
     client_max_body_size 20m;
+
+    ssl_certificate $CERT_DIR/fullchain.pem;
+    ssl_certificate_key $CERT_DIR/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    add_header Strict-Transport-Security "max-age=31536000" always;
 
     location /static/ {
         alias $STATIC_DIR/;
@@ -237,7 +263,7 @@ server {
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Forwarded-Proto https;
         proxy_read_timeout 3600s;
     }
 
@@ -246,7 +272,7 @@ server {
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Forwarded-Proto https;
     }
 }
 EOF
@@ -255,6 +281,13 @@ if [ "$PLATFORM" = "ubuntu" ]; then
   ln -sfn "$NGINX_SITE" /etc/nginx/sites-enabled/therapace
   rm -f /etc/nginx/sites-enabled/default
 else
+  old_nginx_config="/etc/nginx/conf.d/django.conf"
+  if [ -f "$old_nginx_config" ] && grep -q 'app\.sock' "$old_nginx_config"; then
+    old_nginx_backup="$old_nginx_config.disabled.$(date +%Y%m%d%H%M%S)"
+    cp -a "$old_nginx_config" "$old_nginx_backup"
+    mv "$old_nginx_config" "$old_nginx_config.disabled"
+    echo "Disabled obsolete Nginx socket config; backup saved to $old_nginx_backup"
+  fi
   if [ "$(getenforce)" != "Disabled" ]; then
     semanage fcontext -a -t httpd_sys_content_t "$STATIC_DIR(/.*)?" 2>/dev/null \
       || semanage fcontext -m -t httpd_sys_content_t "$STATIC_DIR(/.*)?"
@@ -263,28 +296,38 @@ else
   fi
 fi
 nginx -t
+systemctl start nginx
+
+cat > /etc/systemd/system/therapace-certbot-renew.service <<EOF
+[Unit]
+Description=Renew Therapace TLS certificate
+
+[Service]
+Type=oneshot
+ExecStart=$CERTBOT_BIN renew --quiet --pre-hook "/bin/systemctl stop nginx" --post-hook "/bin/systemctl start nginx" --deploy-hook "/bin/systemctl reload nginx"
+EOF
+
+cat > /etc/systemd/system/therapace-certbot-renew.timer <<'EOF'
+[Unit]
+Description=Check for Therapace TLS certificate renewal every six hours
+
+[Timer]
+OnCalendar=*-*-* 00,06,12,18:00:00
+RandomizedDelaySec=300
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
 
 systemctl daemon-reload
-systemctl enable --now therapace-gunicorn.service therapace-daphne.service
-systemctl enable nginx
-systemctl reload nginx || systemctl start nginx
-
-if [ -n "$LETSENCRYPT_EMAIL" ]; then
-  "$CERTBOT_BIN" --nginx --non-interactive --agree-tos \
-    --email "$LETSENCRYPT_EMAIL" --redirect -d "$APP_HOSTNAME"
-fi
-
-scheme="http"
-if [ -n "$LETSENCRYPT_EMAIL" ]; then
-  scheme="https"
-fi
+systemctl enable --now therapace-certbot-renew.timer
 
 echo
-echo "Deployment complete: $scheme://$APP_HOSTNAME"
-echo "Gunicorn and Daphne listen only on localhost; Nginx handles public HTTP(S)."
+echo "Deployment complete: https://$APP_HOSTNAME"
+echo "Gunicorn and Daphne listen only on localhost; Nginx handles HTTPS and HTTP redirects."
 echo "Services: systemctl status therapace-gunicorn therapace-daphne nginx"
-if [ -z "$LETSENCRYPT_EMAIL" ]; then
-  echo "HTTPS was not configured. Do not send credentials or sensor data until TLS is enabled."
-else
-  echo "HTTPS is enabled through Let's Encrypt. Ensure DNS points to this EC2 instance."
+echo "Certificate renewal: systemctl status therapace-certbot-renew.timer"
+if [[ "$APP_HOSTNAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "The IP-address certificate is short-lived; the renewal timer checks every six hours."
 fi

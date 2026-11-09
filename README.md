@@ -6,14 +6,19 @@ AI exposure therapy at your own pace
 The Django backend accepts authenticated Muse/mobile sensor samples over HTTP
 and provides a duplex WebSocket for ongoing samples and server status updates.
 
-Install backend dependencies, migrate the database, then run the ASGI app:
+Install backend dependencies and migrate the database. On macOS, launch the
+backend for phone testing with:
 
 ```sh
 cd backend
 pip install -r requirements.txt
 python manage.py migrate
-daphne -b 0.0.0.0 -p 8000 backend.asgi:application
+./run-lan.sh
 ```
+
+The script detects the current LAN IPv4 address, adds it to Django's allowed
+hosts, and starts Daphne on port 8000 bound to all interfaces. Set `PORT` to use
+a different port. The phone and Mac must be on the same reachable network.
 
 Obtain a DRF token from the existing `/api/auth/login/` endpoint. Submit a
 sample over HTTP (useful for cURL debugging):
@@ -75,17 +80,46 @@ EXPO_PUBLIC_API_URL=http://127.0.0.1:8000 npx expo start
 
 Use `http://10.0.2.2:8000` for the Android emulator, `http://localhost:8000`
 for the iOS simulator, or your computer's reachable LAN address for a physical
-phone. For a physical device, configure Django `ALLOWED_HOSTS` to include the
-backend host and make sure the phone can reach that host on the network. For a
-local development server, set `DJANGO_ALLOWED_HOSTS` to comma-separated host
-names and bind Django to `0.0.0.0`, for example:
-
-```sh
-DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,172.28.50.1 \
-  python manage.py runserver 0.0.0.0:8000
-```
+phone. For a physical device, set `EXPO_PUBLIC_API_URL` to the LAN URL printed
+by `backend/run-lan.sh` and make sure the phone can reach the Mac on the network.
 
 Only expose a development server on a trusted network.
+
+### Deploying the backend to EC2
+
+The installer supports Ubuntu 22.04/24.04 and Amazon Linux 2023 EC2 instances.
+Clone the repository under `/opt/therapace`, then install the backend and
+Nginx:
+
+```sh
+sudo git clone https://github.com/cureage/therapace.git /opt/therapace
+cd /opt/therapace
+sudo env APP_HOSTNAME=api.example.com \
+  LETSENCRYPT_EMAIL=admin@example.com \
+  ./backend/deploy-ec2.sh
+```
+
+For Amazon Linux 2023, the script installs Python 3.13 and uses `dnf`; it
+configures Nginx under `/etc/nginx/conf.d` and applies SELinux rules for the
+static files and Nginx proxy. Amazon Linux 2 is not supported.
+
+Set `APP_HOSTNAME` to a DNS name pointed at the instance or its public IPv4
+address. The installer requires a Let's Encrypt certificate and enforces
+HTTPS; IP addresses use a short-lived certificate with automatic renewal.
+Provide a contact address with `LETSENCRYPT_EMAIL` (or enter it when prompted).
+The EC2 security group must allow inbound TCP 80 and 443; restrict SSH to
+trusted addresses and do not open ports 8000 or 8001. The installer configures
+Nginx to redirect HTTP to HTTPS and proxy HTTP and WebSocket traffic to Gunicorn
+and Daphne, then runs migrations and collects static files. Check the
+`therapace-gunicorn`, `therapace-daphne`, `nginx`, and
+`therapace-certbot-renew.timer` systemd units with `systemctl status`.
+
+The installer uses the existing SQLite database for a single-instance setup.
+Back up `backend/db.sqlite3` and the `/etc/therapace/backend.env` secret. Moving
+to managed PostgreSQL for multi-instance or higher-availability deployments
+requires configuring the Django database settings and migrating the data. For
+the mobile app, set `EXPO_PUBLIC_API_URL` to the HTTPS URL printed by the
+installer before building or starting Expo.
 
 Bloom signs in at `/api/auth/login/` and keeps the returned DRF token in
 in-memory app state. Bloom uses the native LibMuse SDK to discover the headband,
